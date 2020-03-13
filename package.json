@@ -1,0 +1,13 @@
+{
+  "name": "hawktracer-client",
+  "version": "1.0.0",
+  "scripts": {
+    "install": "cmake-js compile --cmake-path=/usr/local/bin/cmake"
+  },
+  "dependencies": {
+    "node-addon-api": "^2.0.0"
+  },
+  "devDependencies": {
+    "cmake-js": "^6.1.0"
+  }
+}

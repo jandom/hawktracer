@@ -94,6 +94,13 @@ endif(ENABLE_CLIENT)
 add_subdirectory(bindings)
 add_subdirectory(tools_integration)
 
+add_subdirectory(js_client)
+if (CMAKE_JS_VERSION)
+    message(STATUS "add_subdirectory(node_addon)")
+else()
+    message(STATUS "add_subdirectory(other_subproject)")
+endif()
+
 if(ENABLE_TESTS)
     enable_testing()
     add_subdirectory(tests)
