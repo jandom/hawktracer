@@ -58,7 +58,6 @@ void Client::_stop()
         _callback->function.Abort();
         _callback->function.Release();
         _callback.reset();
-        _context_holder = nullptr;
     }
 }
 
