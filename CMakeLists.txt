@@ -94,11 +94,9 @@ endif(ENABLE_CLIENT)
 add_subdirectory(bindings)
 add_subdirectory(tools_integration)
 
-add_subdirectory(js_client)
+# https://www.npmjs.com/package/cmake-js#cmake-specific
 if (CMAKE_JS_VERSION)
-    message(STATUS "add_subdirectory(node_addon)")
-else()
-    message(STATUS "add_subdirectory(other_subproject)")
+    add_subdirectory(js_client)
 endif()
 
 if(ENABLE_TESTS)
