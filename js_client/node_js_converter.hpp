@@ -29,6 +29,6 @@ static Napi::Object Init(Napi::Env env, Napi::Object exports) {
   return exports;
 }
 
-NODE_API_MODULE(hello, Init)
+NODE_API_MODULE(hawktracer_client, Init)
 
 #endif // HAWKTRACER_NODE_JS_CONVERTER_HPP

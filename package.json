@@ -5,6 +5,7 @@
     "install": "cmake-js compile --target node_js_converter"
   },
   "dependencies": {
+    "bindings": "^1.5.0",
     "node-addon-api": "^2.0.0"
   },
   "devDependencies": {
