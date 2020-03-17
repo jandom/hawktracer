@@ -10,25 +10,35 @@
 
 namespace HawkTracer
 {
-namespace client {
+namespace client
+{
 
-class NodeJsConverter : public Converter {};
+class NodeJsConverter: public Converter, public Napi::ObjectWrap<NodeJsConverter>
+{
+public:
+    ~NodeJsConverter() override = default;
 
+    static Napi::Object Init(Napi::Env env, Napi::Object exports);
+    explicit NodeJsConverter(const Napi::CallbackInfo &info);
+
+    bool init(const std::string &file_name) override {return true; /* TODO */}
+    void process_event(const parser::Event &event) override { /* TODO */}
+    void stop() override { /* TODO */}
+
+private:
+    Napi::Value start(const Napi::CallbackInfo &info);
+
+    bool _started = false;
+};
+
+} // client
+} // HawkTracer
+
+static Napi::Object Init(Napi::Env env, Napi::Object exports)
+{
+    return HawkTracer::client::NodeJsConverter::Init(env, exports);
 }
-}
 
-static Napi::Object Init(Napi::Env env, Napi::Object exports) {
-  // Create a new instance
-  Napi::Object obj = Napi::Object::New(env);
-
-  // Assign values to properties
-  obj.Set("hello", "world");
-  obj.Set(uint32_t(42), "The Answer to Life, the Universe, and Everything");
-  obj.Set("Douglas Adams", true);
-  exports.Set(Napi::String::New(env, "hello"), obj);
-  return exports;
-}
-
-NODE_API_MODULE(hawktracer_client, Init)
+NODE_API_MODULE(hawk_tracer_client, Init)
 
 #endif // HAWKTRACER_NODE_JS_CONVERTER_HPP
