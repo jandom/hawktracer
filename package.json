@@ -5,10 +5,15 @@
     "install": "cmake-js compile --target node_js_converter"
   },
   "dependencies": {
+    "@types/node": "^13.9.1",
     "bindings": "^1.5.0",
     "node-addon-api": "^2.0.0"
   },
   "devDependencies": {
-    "cmake-js": "^6.1.0"
+    "@types/jest": "^25.1.4",
+    "cmake-js": "^6.1.0",
+    "jest": "^25.1.0",
+    "ts-jest": "^25.2.1",
+    "typescript": "^3.8.3"
   }
 }
