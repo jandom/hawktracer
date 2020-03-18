@@ -7,12 +7,12 @@
 
 #include <napi.h>
 
-using namespace Napi;
-
 namespace HawkTracer
 {
 namespace Nodejs
 {
+
+using namespace Napi;
 
 class Client: public ObjectWrap<Client>
 {
@@ -31,7 +31,7 @@ private:
 } // namespace Nodejs
 } // namespace HawkTracer
 
-static Object Init(Env env, Object exports)
+static Napi::Object Init(Napi::Env env, Napi::Object exports)
 {
     return HawkTracer::Nodejs::Client::Init(env, exports);
 }

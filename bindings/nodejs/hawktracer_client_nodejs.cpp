@@ -17,14 +17,14 @@ Client::Client(const CallbackInfo &info)
 
 Object Client::Init(class Env env, Object exports)
 {
-    Function func = DefineClass(
+    Function constructor = DefineClass(
         env,
         "HawkTracerClient",
         {
             InstanceMethod("start", &Client::start)
         });
-    Persistent(func).SuppressDestruct();
-    exports.Set("HawkTracerClient", func);
+    Persistent(constructor).SuppressDestruct();
+    exports.Set("HawkTracerClient", constructor);
     return exports;
 }
 
