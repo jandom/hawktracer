@@ -11,7 +11,9 @@ namespace Nodejs
 
 Client::Client(const CallbackInfo &info)
     : ObjectWrap<Client>(info)
-{}
+{
+    _source = info[0].As<String>();
+}
 
 Object Client::Init(class Env env, Object exports)
 {
@@ -21,13 +23,14 @@ Object Client::Init(class Env env, Object exports)
         {
             InstanceMethod("start", &Client::start)
         });
+    Persistent(func).SuppressDestruct();
     exports.Set("HawkTracerClient", func);
     return exports;
 }
 
 Value Client::start(const CallbackInfo &info)
 {
-    return Boolean::New(info.Env(), true);
+    return Boolean::New(info.Env(), !_source.empty());
 }
 
 } // namespace Nodejs

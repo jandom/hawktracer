@@ -22,8 +22,10 @@ public:
     explicit Client(const CallbackInfo &info);
     ~Client() override = default;
 
-private:
     class Value start(const CallbackInfo &info);
+
+private:
+    std::string _source;
 };
 
 } // namespace Nodejs
