@@ -13,6 +13,7 @@ option(ENABLE_EXAMPLES "Enable examples" OFF)
 option(ENABLE_DOC "Build documentation" ON)
 option(ENABLE_CLIENT "Enable client application for parsing HawkTracer stream" ON)
 option(ENABLE_PYTHON_BINDINGS "Enable Python bindings (requires ENABLE_CLIENT=ON)" OFF)
+option(ENABLE_NODEJS_BINDINGS "Enable Node.js bindings (requires ENABLE_CLIENT=ON)" OFF)
 
 option(ENABLE_POSITION_INDEPENDENT_CODE "Enable position independent code of
     the HawkTracer library. For most of the casses, it adds -fPIC flag to a compiler." OFF)
@@ -93,11 +94,6 @@ endif(ENABLE_CLIENT)
 
 add_subdirectory(bindings)
 add_subdirectory(tools_integration)
-
-# https://www.npmjs.com/package/cmake-js#cmake-specific
-if (CMAKE_JS_VERSION)
-    add_subdirectory(js_client)
-endif()
 
 if(ENABLE_TESTS)
     enable_testing()

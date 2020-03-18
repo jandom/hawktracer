@@ -9,6 +9,9 @@ target_link_libraries(cmake_js ${CMAKE_JS_LIB})
 
 # https://www.npmjs.com/package/cmake-js#n-api-and-node-addon-api
 add_library(node_addon_api INTERFACE)
+if (NOT NODE_RUNTIME)
+    find_program(NODE_RUNTIME NAMES node HINTS /usr)
+endif()
 execute_process(COMMAND ${NODE_RUNTIME} -p "require('node-addon-api').include"
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         OUTPUT_VARIABLE NODE_ADDON_API_DIR
@@ -24,6 +27,8 @@ target_link_libraries(node_addon_api INTERFACE cmake_js)
 # Supports Node version >= 12.11.0 https://nodejs.org/api/n-api.html#n_api_n_api_version_matrix
 target_compile_definitions(node_addon_api INTERFACE NAPI_VERSION=5)
 
-add_library(node_js_converter SHARED node_js_converter.cpp node_js_converter.hpp)
-set_target_properties(node_js_converter PROPERTIES PREFIX "" OUTPUT_NAME hawk_tracer_client SUFFIX .node)
-target_link_libraries(node_js_converter PUBLIC node_addon_api hawktracer_client)
+if(ENABLE_CLIENT)
+    add_library(nodejs_bindings_client SHARED hawktracer_client_nodejs.cpp hawktracer_client_nodejs.hpp)
+    set_target_properties(nodejs_bindings_client PROPERTIES PREFIX "" OUTPUT_NAME hawk_tracer_client SUFFIX .node)
+    target_link_libraries(nodejs_bindings_client PUBLIC node_addon_api hawktracer_client)
+endif()

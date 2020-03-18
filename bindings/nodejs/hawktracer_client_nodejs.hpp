@@ -2,8 +2,8 @@
 // Created by Hojin Ghim on 13/03/2020.
 //
 
-#ifndef HAWKTRACER_NODE_JS_CONVERTER_HPP
-#define HAWKTRACER_NODE_JS_CONVERTER_HPP
+#ifndef HAWKTRACER_CLIENT_NODEJS_HPP
+#define HAWKTRACER_CLIENT_NODEJS_HPP
 
 #include "converter.hpp"
 #include <napi.h>
@@ -41,4 +41,4 @@ static Napi::Object Init(Napi::Env env, Napi::Object exports)
 
 NODE_API_MODULE(hawk_tracer_client, Init)
 
-#endif // HAWKTRACER_NODE_JS_CONVERTER_HPP
+#endif // HAWKTRACER_CLIENT_NODEJS_HPP
