@@ -6,30 +6,29 @@
 
 namespace HawkTracer
 {
-namespace client
+namespace Nodejs
 {
 
-NodeJsConverter::NodeJsConverter(const Napi::CallbackInfo &info)
-    : Napi::ObjectWrap<NodeJsConverter>(info)
+Client::Client(const CallbackInfo &info)
+    : ObjectWrap<Client>(info)
 {}
 
-Napi::Object NodeJsConverter::Init(Napi::Env env, Napi::Object exports)
+Object Client::Init(class Env env, Object exports)
 {
-    Napi::Function func = DefineClass(
+    Function func = DefineClass(
         env,
         "HawkTracerClient",
         {
-            InstanceMethod("start", &NodeJsConverter::start)
+            InstanceMethod("start", &Client::start)
         });
     exports.Set("HawkTracerClient", func);
     return exports;
 }
 
-Napi::Value NodeJsConverter::start(const Napi::CallbackInfo &info)
+Value Client::start(const CallbackInfo &info)
 {
-    _started = true;
-    return Napi::Boolean::New(info.Env(), _started);
+    return Boolean::New(info.Env(), true);
 }
 
-} // client
-} // HawkTracer
+} // namespace Nodejs
+} // namespace HawkTracer

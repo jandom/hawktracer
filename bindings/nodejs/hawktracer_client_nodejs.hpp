@@ -5,38 +5,33 @@
 #ifndef HAWKTRACER_CLIENT_NODEJS_HPP
 #define HAWKTRACER_CLIENT_NODEJS_HPP
 
-#include "converter.hpp"
 #include <napi.h>
+
+using namespace Napi;
 
 namespace HawkTracer
 {
-namespace client
+namespace Nodejs
 {
 
-class NodeJsConverter: public Converter, public Napi::ObjectWrap<NodeJsConverter>
+class Client: public ObjectWrap<Client>
 {
 public:
-    ~NodeJsConverter() override = default;
+    static Object Init(class Env env, Object exports);
 
-    static Napi::Object Init(Napi::Env env, Napi::Object exports);
-    explicit NodeJsConverter(const Napi::CallbackInfo &info);
-
-    bool init(const std::string &file_name) override {return true; /* TODO */}
-    void process_event(const parser::Event &event) override { /* TODO */}
-    void stop() override { /* TODO */}
+    explicit Client(const CallbackInfo &info);
+    ~Client() override = default;
 
 private:
-    Napi::Value start(const Napi::CallbackInfo &info);
-
-    bool _started = false;
+    class Value start(const CallbackInfo &info);
 };
 
-} // client
-} // HawkTracer
+} // namespace Nodejs
+} // namespace HawkTracer
 
-static Napi::Object Init(Napi::Env env, Napi::Object exports)
+static Object Init(Env env, Object exports)
 {
-    return HawkTracer::client::NodeJsConverter::Init(env, exports);
+    return HawkTracer::Nodejs::Client::Init(env, exports);
 }
 
 NODE_API_MODULE(hawk_tracer_client, Init)
