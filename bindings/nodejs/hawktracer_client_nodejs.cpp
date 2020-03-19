@@ -15,7 +15,7 @@ Client::Client(const CallbackInfo &info)
     _source = info[0].As<String>();
 }
 
-Object Client::Init(class Env env, Object exports)
+Object Client::init_bindings(class Env env, Object exports)
 {
     Function constructor = DefineClass(
         env,

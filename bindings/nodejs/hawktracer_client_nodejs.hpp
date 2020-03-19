@@ -17,7 +17,7 @@ using namespace Napi;
 class Client: public ObjectWrap<Client>
 {
 public:
-    static Object Init(class Env env, Object exports);
+    static Object init_bindings(class Env env, Object exports);
 
     explicit Client(const CallbackInfo &info);
     ~Client() override = default;
@@ -31,11 +31,11 @@ private:
 } // namespace Nodejs
 } // namespace HawkTracer
 
-static Napi::Object Init(Napi::Env env, Napi::Object exports)
+static Napi::Object init_bindings(Napi::Env env, Napi::Object exports)
 {
-    return HawkTracer::Nodejs::Client::Init(env, exports);
+    return HawkTracer::Nodejs::Client::init_bindings(env, exports);
 }
 
-NODE_API_MODULE(hawk_tracer_client, Init)
+NODE_API_MODULE(hawk_tracer_client, init_bindings)
 
 #endif // HAWKTRACER_CLIENT_NODEJS_HPP
