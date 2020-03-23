@@ -30,7 +30,8 @@ Object Client::init_bindings(class Env env, Object exports)
 
 Value Client::start(const CallbackInfo &info)
 {
-    return Boolean::New(info.Env(), !_source.empty());
+    _context = ClientContext::create(_source);
+    return Boolean::New(info.Env(), static_cast<bool>(_context));
 }
 
 } // namespace Nodejs

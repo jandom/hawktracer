@@ -5,6 +5,8 @@
 #ifndef HAWKTRACER_CLIENT_NODEJS_HPP
 #define HAWKTRACER_CLIENT_NODEJS_HPP
 
+#include "client_context.hpp"
+
 #include <napi.h>
 
 namespace HawkTracer
@@ -26,6 +28,7 @@ public:
 
 private:
     std::string _source;
+    std::unique_ptr<ClientContext> _context;
 };
 
 } // namespace Nodejs
