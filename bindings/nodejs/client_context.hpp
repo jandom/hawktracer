@@ -7,6 +7,7 @@
 
 #include <string>
 
+#include "hawktracer/parser/event.hpp"
 #include "hawktracer/parser/protocol_reader.hpp"
 #include "hawktracer/parser/klass_register.hpp"
 
@@ -18,14 +19,18 @@ namespace Nodejs
 class ClientContext
 {
 public:
-    static std::unique_ptr<ClientContext> create(const std::string &source);
+    using EventCallback = std::function<void(std::vector<const parser::Event *>)>;
+    static std::unique_ptr<ClientContext> create(const std::string &source, const EventCallback& event_callback);
+
+    ~ClientContext();
 
 private:
     ClientContext(std::unique_ptr<parser::ProtocolReader> reader,
-                  std::unique_ptr<parser::KlassRegister> klass_register);
+                  std::unique_ptr<parser::KlassRegister> klass_register,
+                  const EventCallback &event_callback);
 
-    std::unique_ptr<parser::ProtocolReader> _reader;
-    std::unique_ptr<parser::KlassRegister> _klass_register;
+    const std::unique_ptr<parser::ProtocolReader> _reader;
+    const std::unique_ptr<const parser::KlassRegister> _klass_register;
 };
 
 } // namespace Nodejs

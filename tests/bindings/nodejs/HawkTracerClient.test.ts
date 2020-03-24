@@ -20,7 +20,21 @@ describe("1. Initiating HawkTracerClient", () => {
     });
 });
 
-describe("2. Start HawkTracerClient", () => {
+describe("2. Set up data callback", () => {
+    const {HawkTracerClient} = require('bindings')('hawk_tracer_client');
+    const source = require('path').join(__dirname, 'test.htdump');
+    const hawkTracerClient = new HawkTracerClient(source);
+
+    test("invokes data callback", (done) => {
+        hawkTracerClient.onData((data: object) => {
+            console.log(JSON.stringify(data));   // TODO
+            done();
+        });
+        hawkTracerClient.start();
+    });
+});
+
+describe("3. Start HawkTracerClient", () => {
     const {HawkTracerClient} = require('bindings')('hawk_tracer_client');
 
     test("succeeds with existing source file", () => {

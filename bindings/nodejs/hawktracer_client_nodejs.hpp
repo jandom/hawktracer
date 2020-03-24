@@ -22,12 +22,17 @@ public:
     static Object init_bindings(class Env env, Object exports);
 
     explicit Client(const CallbackInfo &info);
-    ~Client() override = default;
+    ~Client() override;
 
     class Value start(const CallbackInfo &info);
+    void add_on_event(const CallbackInfo &info);
 
 private:
+    void handle_event(std::vector<const parser::Event *> data);
+    static void transform_and_callback(class Env env, Function real_callback, std::vector<const parser::Event *> *data);
+
     std::string _source;
+    std::vector<ThreadSafeFunction> _callbacks;
     std::unique_ptr<ClientContext> _context;
 };
 
