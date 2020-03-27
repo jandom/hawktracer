@@ -28,12 +28,20 @@ public:
     void add_on_event(const CallbackInfo &info);
 
 private:
-    void handle_event(std::vector<const parser::Event *> data);
-    static void transform_and_callback(class Env env, Function real_callback, std::vector<const parser::Event *> *data);
+    void handle_event(std::unique_ptr<std::vector<parser::Event>> data);
+    static class Value convert_field_value(class Env env, const parser::Event::Value &value);
+    static Object convert_event(class Env env, const parser::Event &event);
+    static void transform_and_callback(class Env env, Function real_callback, std::vector<parser::Event> *events);
 
-    std::string _source;
-    std::vector<ThreadSafeFunction> _callbacks;
-    std::unique_ptr<ClientContext> _context;
+    std::string _source {};
+    std::unique_ptr<ClientContext> _context {};
+
+    struct ThreadSafeFunctionHolder
+    {
+        ThreadSafeFunction function;
+    };
+    std::unique_ptr<ThreadSafeFunctionHolder> _callback {};
+    std::mutex _callback_lock {};
 };
 
 } // namespace Nodejs

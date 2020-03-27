@@ -26,8 +26,7 @@ describe("2. Set up data callback", () => {
     const hawkTracerClient = new HawkTracerClient(source);
 
     test("invokes data callback", (done) => {
-        hawkTracerClient.onData((data: object) => {
-            console.log(JSON.stringify(data));   // TODO
+        hawkTracerClient.onData(() => {
             done();
         });
         hawkTracerClient.start();

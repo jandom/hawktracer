@@ -19,18 +19,19 @@ namespace Nodejs
 class ClientContext
 {
 public:
-    using EventCallback = std::function<void(std::vector<const parser::Event *>)>;
-    static std::unique_ptr<ClientContext> create(const std::string &source, const EventCallback& event_callback);
+    using EventCallback = std::function<void(std::unique_ptr<std::vector<parser::Event>>)>;
+    static std::unique_ptr<ClientContext> create(const std::string &source, EventCallback event_callback);
 
     ~ClientContext();
 
 private:
     ClientContext(std::unique_ptr<parser::ProtocolReader> reader,
                   std::unique_ptr<parser::KlassRegister> klass_register,
-                  const EventCallback &event_callback);
+                  EventCallback event_callback);
 
     const std::unique_ptr<parser::ProtocolReader> _reader;
     const std::unique_ptr<const parser::KlassRegister> _klass_register;
+    const EventCallback _event_callback;
 };
 
 } // namespace Nodejs
