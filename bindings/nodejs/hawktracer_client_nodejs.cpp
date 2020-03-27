@@ -18,7 +18,7 @@ Object Client::init_bindings(class Env env, Object exports)
         "HawkTracerClient",
         {
             InstanceMethod("start", &Client::start),
-            InstanceMethod("onData", &Client::add_on_event)
+            InstanceMethod("onEvents", &Client::set_on_events)
         });
     Persistent(constructor).SuppressDestruct();
     exports.Set("HawkTracerClient", constructor);
@@ -51,7 +51,7 @@ Value Client::start(const CallbackInfo &info)
     return Boolean::New(info.Env(), static_cast<bool>(_context));
 }
 
-void Client::add_on_event(const CallbackInfo &info)
+void Client::set_on_events(const CallbackInfo &info)
 {
     std::lock_guard<std::mutex> lock(_callback_lock);
     _callback.reset(new ThreadSafeFunctionHolder{ThreadSafeFunction::New(info.Env(),

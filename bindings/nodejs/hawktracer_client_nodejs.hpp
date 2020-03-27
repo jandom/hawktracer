@@ -25,7 +25,7 @@ public:
     ~Client() override;
 
     class Value start(const CallbackInfo &info);
-    void add_on_event(const CallbackInfo &info);
+    void set_on_events(const CallbackInfo &info);
 
 private:
     void handle_event(std::unique_ptr<std::vector<parser::Event>> data);

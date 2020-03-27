@@ -26,7 +26,7 @@ describe("2. Set up data callback", () => {
     const hawkTracerClient = new HawkTracerClient(source);
 
     test("invokes data callback", (done) => {
-        hawkTracerClient.onData(() => {
+        hawkTracerClient.onEvents(() => {
             done();
         });
         hawkTracerClient.start();
@@ -49,3 +49,25 @@ describe("3. Start HawkTracerClient", () => {
         expect(hawkTracerClient.start()).toBe(false);
     });
 });
+
+describe("4. Receive data through callback", () => {
+    const {HawkTracerClient} = require('bindings')('hawk_tracer_client');
+    const source = require('path').join(__dirname, 'test.htdump');
+    const hawkTracerClient = new HawkTracerClient(source);
+
+    test("correct number of data", (done) => {
+        let count = 0;
+        hawkTracerClient.onEvents((events: object[]) => {
+            console.log(JSON.stringify(events));
+            count += events.length;
+            if (count > 56) {   // number of events in test.htdump
+                throw new Error("Too many data");
+            }
+            if (count == 56) {
+                setTimeout(done, 1000);
+            }
+        });
+        hawkTracerClient.start();
+    });
+});
+
