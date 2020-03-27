@@ -44,7 +44,7 @@ describe("3. Start HawkTracerClient", () => {
 
     test.todo("succeeds with source in 'x.x.x.x:p' format where x.x.x.x is the IP address, p is port number");
 
-    test("succeeds with non-existing source file", () => {
+    test("fails with non-existing source file", () => {
         const hawkTracerClient = new HawkTracerClient('non-existing file !@£$%^&*()');
         expect(hawkTracerClient.start()).toBe(false);
     });
