@@ -21,11 +21,11 @@ describe("1. Initiating HawkTracerClient", () => {
 });
 
 describe("2. Set up callback", () => {
-    const {HawkTracerClient} = require('bindings')('hawk_tracer_client');
-    const source = require('path').join(__dirname, 'test.htdump');
-    const hawkTracerClient = new HawkTracerClient(source);
-
     test("invokes callback", (done) => {
+        const {HawkTracerClient} = require('bindings')('hawk_tracer_client');
+        const source = require('path').join(__dirname, 'test.htdump');
+        const hawkTracerClient = new HawkTracerClient(source);
+
         hawkTracerClient.onEvents(() => {
             done();
         });
@@ -34,9 +34,8 @@ describe("2. Set up callback", () => {
 });
 
 describe("3. Start HawkTracerClient", () => {
-    const {HawkTracerClient} = require('bindings')('hawk_tracer_client');
-
     test("succeeds with existing source file", () => {
+        const {HawkTracerClient} = require('bindings')('hawk_tracer_client');
         const source = require('path').join(__dirname, 'test.htdump');
         const hawkTracerClient = new HawkTracerClient(source);
         expect(hawkTracerClient.start()).toBe(true);
@@ -45,17 +44,18 @@ describe("3. Start HawkTracerClient", () => {
     test.todo("succeeds with source in 'x.x.x.x:p' format where x.x.x.x is the IP address, p is port number");
 
     test("fails with non-existing source file", () => {
+        const {HawkTracerClient} = require('bindings')('hawk_tracer_client');
         const hawkTracerClient = new HawkTracerClient('non-existing file !@£$%^&*()');
         expect(hawkTracerClient.start()).toBe(false);
     });
 });
 
 describe("4. Receive events through callback", () => {
-    const {HawkTracerClient} = require('bindings')('hawk_tracer_client');
-    const source = require('path').join(__dirname, 'test.htdump');
-    const hawkTracerClient = new HawkTracerClient(source);
-
     test("correct number of events", (done) => {
+        const {HawkTracerClient} = require('bindings')('hawk_tracer_client');
+        const source = require('path').join(__dirname, 'test.htdump');
+        const hawkTracerClient = new HawkTracerClient(source);
+
         let count = 0;
         hawkTracerClient.onEvents((events: object[]) => {
             count += events.length;
@@ -63,10 +63,31 @@ describe("4. Receive events through callback", () => {
                 throw new Error("Too many events");
             }
             if (count == 56) {
-                setTimeout(done, 1000);
+                setTimeout(done, 500); // Wait for a while in case more events come in.
             }
         });
         hawkTracerClient.start();
     });
 });
 
+describe("5. Stop HawkTracerClient", () => {
+    test("succeeds and events stop coming", (done) => {
+        const {HawkTracerClient} = require('bindings')('hawk_tracer_client');
+        const source = require('path').join(__dirname, 'test.htdump');
+        const hawkTracerClient = new HawkTracerClient(source);
+
+        let i = 0;
+        hawkTracerClient.onEvents(() => {
+            ++i;
+            if (i == 1) {
+                // noinspection JSDeprecatedSymbols
+                hawkTracerClient.stop();
+                setTimeout(done, 500);
+                return;
+            }
+            throw new Error("Events were received after stop.");
+        });
+
+        hawkTracerClient.start();
+    });
+});

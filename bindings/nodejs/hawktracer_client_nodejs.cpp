@@ -18,7 +18,8 @@ Object Client::init_bindings(class Env env, Object exports)
         "HawkTracerClient",
         {
             InstanceMethod("start", &Client::start),
-            InstanceMethod("onEvents", &Client::set_on_events)
+            InstanceMethod("onEvents", &Client::set_on_events),
+            InstanceMethod("stop", &Client::stop)
         });
     Persistent(constructor).SuppressDestruct();
     exports.Set("HawkTracerClient", constructor);
@@ -33,10 +34,7 @@ Client::Client(const CallbackInfo &info)
 
 Client::~Client()
 {
-    std::lock_guard<std::mutex> lock(_callback_lock);
-    if (_callback) {
-        _callback->function.Release();
-    }
+    _stop();
 }
 
 Value Client::start(const CallbackInfo &info)
@@ -51,9 +49,25 @@ Value Client::start(const CallbackInfo &info)
     return Boolean::New(info.Env(), static_cast<bool>(_context));
 }
 
+void Client::stop(const CallbackInfo &)
+{
+    _stop();
+}
+
+void Client::_stop()
+{
+    _context.reset();
+    std::lock_guard<std::mutex> lock{_callback_lock};
+    if (_callback) {
+        _callback->function.Abort();
+        _callback->function.Release();
+        _callback.reset();
+    }
+}
+
 void Client::set_on_events(const CallbackInfo &info)
 {
-    std::lock_guard<std::mutex> lock(_callback_lock);
+    std::lock_guard<std::mutex> lock{_callback_lock};
     _callback.reset(new ThreadSafeFunctionHolder{ThreadSafeFunction::New(info.Env(),
                                                                          info[0].As<Napi::Function>(),
                                                                          "HawkTracerClientOnEvent",
@@ -64,13 +78,13 @@ void Client::set_on_events(const CallbackInfo &info)
 // This method is called from reader thread, while all other methods are called from js main thread.
 void Client::handle_event(std::unique_ptr<std::vector<parser::Event>> events)
 {
-    std::lock_guard<std::mutex> lock(_callback_lock);
+    auto *copied_events = new std::vector<parser::Event>{};
+    std::copy(events->cbegin(), events->cend(), std::back_inserter(*copied_events));
+
+    std::lock_guard<std::mutex> lock{_callback_lock};
     if (!_callback) {
         return;
     }
-
-    auto *copied_events = new std::vector<parser::Event>{};
-    std::copy(events->cbegin(), events->cend(), std::back_inserter(*copied_events));
 
     napi_status status = _callback->function.NonBlockingCall(copied_events, &Client::transform_and_callback);
     if (status != napi_ok) {

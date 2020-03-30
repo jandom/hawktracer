@@ -25,9 +25,11 @@ public:
     ~Client() override;
 
     class Value start(const CallbackInfo &info);
+    void stop(const CallbackInfo &info);
     void set_on_events(const CallbackInfo &info);
 
 private:
+    void _stop();
     void handle_event(std::unique_ptr<std::vector<parser::Event>> data);
     static class Value convert_field_value(class Env env, const parser::Event::Value &value);
     static Object convert_event(class Env env, const parser::Event &event);
