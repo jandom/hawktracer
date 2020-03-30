@@ -17,8 +17,7 @@ function(create_python_bindings_target)
 
     add_dependencies(python_bindings_${PY_MODULE_NAME} ${create_python_bindings_target_DEPENDENCIES})
 
-    install(CODE "execute_process(COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/setup_${PY_MODULE_NAME}.py install --prefix=${CMAKE_INSTALL_PREFIX})"
-            COMPONENT python-bindings)
+    install(CODE "execute_process(COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/setup_${PY_MODULE_NAME}.py install --prefix=${CMAKE_INSTALL_PREFIX})")
 endfunction(create_python_bindings_target)
 
 if(ENABLE_CODE_COVERAGE)
@@ -41,7 +40,7 @@ if(ENABLE_CLIENT)
         PY_MODULE_NAME client
         BUILD_LIB_PARAMS ${BUILD_LIB_PARAMS}
         DEPENDENCIES hawktracer hawktracer_parser hawktracer_client_utils)
-    install(FILES plot-events.py COMPONENT python-bindings DESTINATION examples/python3)
+    install(FILES plot-events.py DESTINATION examples/python3)
 endif(ENABLE_CLIENT)
 
 set(BUILD_LIB_PARAMS
@@ -54,4 +53,4 @@ create_python_bindings_target(
         PY_MODULE_NAME core
         BUILD_LIB_PARAMS ${BUILD_LIB_PARAMS}
         DEPENDENCIES hawktracer)
-install(FILES instrumentation-base-example.py instrumentation-advanced-example.py COMPONENT python-bindings DESTINATION examples/python3) # TODO: move to create_python_bindings_target()
+install(FILES instrumentation-base-example.py instrumentation-advanced-example.py DESTINATION examples/python3) # TODO: move to create_python_bindings_target()

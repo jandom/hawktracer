@@ -1,7 +1,3 @@
-//
-// Created by Hojin Ghim on 23/03/2020.
-//
-
 #ifndef CLIENT_CONTEXT_HPP
 #define CLIENT_CONTEXT_HPP
 

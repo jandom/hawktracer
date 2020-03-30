@@ -1,7 +1,3 @@
-//
-// Created by Hojin Ghim on 23/03/2020.
-//
-
 #include "client_context.hpp"
 
 #include "hawktracer/client_utils/stream_factory.hpp"

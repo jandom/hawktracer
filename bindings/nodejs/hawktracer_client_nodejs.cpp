@@ -1,7 +1,3 @@
-//
-// Created by Hojin Ghim on 13/03/2020.
-//
-
 #include "hawktracer_client_nodejs.hpp"
 
 namespace HawkTracer
