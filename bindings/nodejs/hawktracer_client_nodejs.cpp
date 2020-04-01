@@ -56,7 +56,7 @@ void Client::stop(const CallbackInfo &)
 void Client::_stop()
 {
     _context.reset();
-    std::lock_guard<std::mutex> lock{_callback_lock};
+    std::lock_guard<std::mutex> lock{_callback_mutex};
     if (_callback) {
         _callback->function.Abort();
         _callback->function.Release();
@@ -66,7 +66,7 @@ void Client::_stop()
 
 void Client::set_on_events(const CallbackInfo &info)
 {
-    std::lock_guard<std::mutex> lock{_callback_lock};
+    std::lock_guard<std::mutex> lock{_callback_mutex};
     _callback.reset(new ThreadSafeFunctionHolder{ThreadSafeFunction::New(info.Env(),
                                                                          info[0].As<Napi::Function>(),
                                                                          "HawkTracerClientOnEvent",
@@ -78,7 +78,7 @@ void Client::set_on_events(const CallbackInfo &info)
 std::unique_ptr<std::vector<parser::Event>>
 Client::handle_events(std::unique_ptr<std::vector<parser::Event>> events, ClientContext::ConsumeMode consume_mode)
 {
-    std::lock_guard<std::mutex> lock{_callback_lock};
+    std::lock_guard<std::mutex> lock{_callback_mutex};
     if (!_callback) {
         return events;
     }

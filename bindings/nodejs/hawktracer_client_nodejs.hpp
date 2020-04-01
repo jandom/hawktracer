@@ -42,7 +42,7 @@ private:
         ThreadSafeFunction function;
     };
     std::unique_ptr<ThreadSafeFunctionHolder> _callback {};
-    std::mutex _callback_lock {};
+    std::mutex _callback_mutex {};
 };
 
 } // namespace Nodejs
