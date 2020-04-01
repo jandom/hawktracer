@@ -2,6 +2,7 @@
 
 #include "hawktracer/client_utils/stream_factory.hpp"
 #include "hawktracer/parser/make_unique.hpp"
+#include <iostream>
 #include <utility>
 
 namespace HawkTracer
@@ -45,7 +46,9 @@ ClientContext::ClientContext(std::unique_ptr<parser::ProtocolReader> reader,
                 return;
             }
             _events = _event_callback(std::move(_events), ConsumeMode::FORCE_CONSUME);
-            assert(!_events || _events->empty()); // NOLINT(bugprone-lambda-function-name)
+            if (_events && !_events->empty()) {
+                std::cerr << _events->size() << " events were not processed." << std::endl;
+            }
         });
 
     _reader->start();
