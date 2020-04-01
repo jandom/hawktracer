@@ -31,6 +31,34 @@ describe("2. Set up callback", () => {
         });
         hawkTracerClient.start();
     });
+
+    test("receives all events when the events listener is replaced", (done) => {
+        const {HawkTracerClient} = require('bindings')('hawk_tracer_client');
+        const source = require('path').join(__dirname, 'test.htdump');
+        const hawkTracerClient = new HawkTracerClient(source);
+
+        const expected_count = 56;   // number of events in test.htdump
+        let firstCount = 0;
+        let secondCount = 0;
+
+        const secondCallback = (events) => {
+            secondCount += events.length;
+            checkEventsCount(firstCount + secondCount, expected_count, done);
+        };
+
+        const firstCallback = (events) => {
+            if (firstCount == 0) {
+                hawkTracerClient.onEvents(secondCallback);
+            }
+            firstCount += events.length;
+            checkEventsCount(firstCount + secondCount, expected_count, done);
+        };
+
+        hawkTracerClient.onEvents(firstCallback);
+        hawkTracerClient.start();
+    });
+
+    test.todo("receives all events if onEvents() is called after start().");
 });
 
 describe("3. Start HawkTracerClient", () => {
@@ -51,61 +79,44 @@ describe("3. Start HawkTracerClient", () => {
 });
 
 describe("4. Receive events through callback", () => {
-    const expected_count = 56;   // number of events in test.htdump
-    let count;
-    let timer;
-    beforeEach(() => {
-        jest.setTimeout(1000000);   // We'll have custom timer.
-        timer = setTimeout(() => {
-            throw new Error("Too few events, expected: " + expected_count + ", actual: " + count);
-        }, 5000);
-        count = 0;
-    });
-
-    afterEach(() => {
-        timer.unref();
-    });
-
     test("correct number of events", (done) => {
         const {HawkTracerClient} = require('bindings')('hawk_tracer_client');
         const source = require('path').join(__dirname, 'test.htdump');
         const hawkTracerClient = new HawkTracerClient(source);
 
+        const expected_count = 56;   // number of events in test.htdump
+        let count = 0;
         hawkTracerClient.onEvents((events: object[]) => {
             count += events.length;
-            if (count > expected_count) {
-                throw new Error("Too many events, expected: " + expected_count + ", actual: " + count);
-            }
-            if (count == expected_count) {
-                setTimeout(done, 500); // Wait for a while in case more events come in.
-            }
+            checkEventsCount(count, expected_count, done);
         });
         hawkTracerClient.start();
     });
+
+    function busySleep(seconds) {
+        const sleepStart = process.hrtime();
+        let sleptSeconds;
+        do {
+            [sleptSeconds,] = process.hrtime(sleepStart);
+        } while (sleptSeconds < seconds);
+    }
 
     test("do not lose events when the callback delays too long", (done) => {
         const {HawkTracerClient} = require('bindings')('hawk_tracer_client');
         const source = require('path').join(__dirname, 'test.htdump');
         const hawkTracerClient = new HawkTracerClient(source);
 
+        const expected_count = 56;   // number of events in test.htdump
+        let count = 0;
         let delayed = false;
         hawkTracerClient.onEvents((events: object[]) => {
             count += events.length;
-            if (count > expected_count) {
-                throw new Error("Too many events, expected: " + expected_count + ", actual: " + count);
-            }
-            if (count == expected_count) {
-                expect(delayed).toBe(true);
-                setTimeout(done, 500); // Wait for a while in case more events come in.
-            }
+            checkEventsCount(count, expected_count, done);
+
             if (!delayed) {
                 delayed = true;
                 // Block the main thread
-                const delayStart = process.hrtime();
-                let delayedSeconds;
-                do {
-                    [delayedSeconds,] = process.hrtime(delayStart);
-                } while (delayedSeconds < 1);    // delays 1 second
+                busySleep(1);
             }
         });
         hawkTracerClient.start();
@@ -127,9 +138,27 @@ describe("5. Stop HawkTracerClient", () => {
                 setTimeout(done, 500);
                 return;
             }
-            throw new Error("Events were received after stop.");
+            expect(i).toBe(1);
         });
 
         hawkTracerClient.start();
     });
 });
+
+let countTimer;
+
+function checkEventsCount(count, expected_count, done) {
+    expect(count).toBeLessThanOrEqual(expected_count);
+    if (count == expected_count) {
+        setTimeout(done, 500); // Wait for a while in case more events come in.
+    }
+    clearTimeout(countTimer);
+    countTimer = setTimeout(() => {
+        expect(count).toBe(expected_count);
+    }, 4000);
+}
+
+afterEach(() => {
+    clearTimeout(countTimer);
+});
+
