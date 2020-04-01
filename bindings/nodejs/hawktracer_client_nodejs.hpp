@@ -26,7 +26,8 @@ public:
 
 private:
     void _stop();
-    void handle_event(std::unique_ptr<std::vector<parser::Event>> data);
+    std::unique_ptr<std::vector<parser::Event>>
+    handle_event(std::unique_ptr<std::vector<parser::Event>> events, ClientContext::ConsumeMode consume_mode);
     static class Value convert_field_value(class Env env, const parser::Event::Value &value);
     static Object convert_event(class Env env, const parser::Event &event);
     static void transform_and_callback(class Env env, Function real_callback, std::vector<parser::Event> *events);

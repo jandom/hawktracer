@@ -29,12 +29,24 @@ ClientContext::ClientContext(std::unique_ptr<parser::ProtocolReader> reader,
                              EventCallback event_callback)
     : _reader(std::move(reader)), _klass_register(std::move(klass_register)), _event_callback(std::move(event_callback))
 {
-    _reader->register_events_listener([this](const parser::Event &event)
-                                      {
-                                          auto events = parser::make_unique<std::vector<parser::Event>>();
-                                          events->push_back(event); // TODO
-                                          _event_callback(std::move(events));
-                                      });
+    _reader->register_events_listener(
+        [this](const parser::Event &event)
+        {
+            if (!_events) {
+                _events.reset(new std::vector<parser::Event>{});
+            }
+            _events->push_back(event);
+            _events = _event_callback(std::move(_events), ConsumeMode::TRY_CONSUME);
+        });
+    _reader->register_complete_listener(
+        [this]()
+        {
+            if (!_events || _events->empty()) {
+                return;
+            }
+            _events = _event_callback(std::move(_events), ConsumeMode::FORCE_CONSUME);
+            assert(!_events || _events->empty()); // NOLINT(bugprone-lambda-function-name)
+        });
 
     _reader->start();
 }

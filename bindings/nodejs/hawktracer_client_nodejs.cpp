@@ -1,3 +1,4 @@
+#include <iostream>
 #include "hawktracer_client_nodejs.hpp"
 
 namespace HawkTracer
@@ -37,9 +38,9 @@ Value Client::start(const CallbackInfo &info)
 {
     _context = ClientContext::create(
         _source,
-        [this](std::unique_ptr<std::vector<parser::Event>> data)
+        [this](std::unique_ptr<std::vector<parser::Event>> data, ClientContext::ConsumeMode consume_mode)
         {
-            handle_event(std::move(data));
+            return handle_event(std::move(data), consume_mode);
         }
     );
     return Boolean::New(info.Env(), static_cast<bool>(_context));
@@ -67,26 +68,35 @@ void Client::set_on_events(const CallbackInfo &info)
     _callback.reset(new ThreadSafeFunctionHolder{ThreadSafeFunction::New(info.Env(),
                                                                          info[0].As<Napi::Function>(),
                                                                          "HawkTracerClientOnEvent",
-                                                                         0,
-                                                                         1)});   // TODO manual buffering
+                                                                         1,
+                                                                         1)});
 }
 
 // This method is called from reader thread, while all other methods are called from js main thread.
-void Client::handle_event(std::unique_ptr<std::vector<parser::Event>> events)
+std::unique_ptr<std::vector<parser::Event>>
+Client::handle_event(std::unique_ptr<std::vector<parser::Event>> events, ClientContext::ConsumeMode consume_mode)
 {
-    auto *copied_events = new std::vector<parser::Event>{};
-    std::copy(events->cbegin(), events->cend(), std::back_inserter(*copied_events));
-
     std::lock_guard<std::mutex> lock{_callback_lock};
     if (!_callback) {
-        return;
+        return events;
     }
 
-    napi_status status = _callback->function.NonBlockingCall(copied_events, &Client::transform_and_callback);
-    if (status != napi_ok) {
-        printf("NonBlockingCall returned %d\n", status);
-        Error::Fatal("ThreadEntry", "ThreadSafeFunction.NonBlockingCall() failed");
+    auto events_raw_ptr = events.release();
+    napi_status status;
+    if (consume_mode == ClientContext::ConsumeMode::FORCE_CONSUME) {
+        status = _callback->function.BlockingCall(events_raw_ptr, &Client::transform_and_callback);
     }
+    else {
+        status = _callback->function.NonBlockingCall(events_raw_ptr, &Client::transform_and_callback);
+    }
+
+    if (status == napi_queue_full) {
+        return std::unique_ptr<std::vector<parser::Event>>{events_raw_ptr};
+    }
+    if (status != napi_ok) {
+        std::cerr << "NonBlockingCall failed with " << status << std::endl;
+    }
+    return std::unique_ptr<std::vector<parser::Event>>{};
 }
 
 Value Client::convert_field_value(class Env env, const parser::Event::Value &value)
