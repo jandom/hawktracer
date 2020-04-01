@@ -38,14 +38,13 @@ Client::~Client()
 
 Value Client::start(const CallbackInfo &info)
 {
-    _context = ClientContext::create(
+    _context_holder->context = ClientContext::create(
         _source,
         [this](std::unique_ptr<std::vector<parser::Event>> data, ClientContext::ConsumeMode consume_mode)
         {
             return handle_events(std::move(data), consume_mode);
-        }
-    );
-    return Boolean::New(info.Env(), static_cast<bool>(_context));
+        });
+    return Boolean::New(info.Env(), static_cast<bool>(_context_holder->context));
 }
 
 void Client::stop(const CallbackInfo &)
@@ -55,23 +54,36 @@ void Client::stop(const CallbackInfo &)
 
 void Client::_stop()
 {
-    _context.reset();
     std::lock_guard<std::mutex> lock{_callback_mutex};
     if (_callback) {
         _callback->function.Abort();
         _callback->function.Release();
         _callback.reset();
     }
+    else {
+        delete _context_holder;
+    }
 }
 
 void Client::set_on_events(const CallbackInfo &info)
 {
     std::lock_guard<std::mutex> lock{_callback_mutex};
-    _callback.reset(new ThreadSafeFunctionHolder{ThreadSafeFunction::New(info.Env(),
-                                                                         info[0].As<Napi::Function>(),
-                                                                         "HawkTracerClientOnEvent",
-                                                                         1,
-                                                                         1)});
+    if (_callback) {
+        // existing _context_holder will be deleted by the finalizer of existing _callback.function
+        _context_holder = new ContextHolder{std::move(*_context_holder)};
+        _callback->function.Release();
+    }
+    _callback.reset(new ThreadSafeFunctionHolder{
+        ThreadSafeFunction::New(info.Env(),
+                                info[0].As<Napi::Function>(),
+                                "HawkTracerClientOnEvent",
+                                1,
+                                1,
+                                [](class Env, decltype(_context_holder) context_holder)
+                                {
+                                    delete context_holder;
+                                },
+                                _context_holder)});
 }
 
 // This method is called from reader thread, while all other methods are called from js main thread.

@@ -35,7 +35,13 @@ private:
     static void convert_and_callback(class Env env, Function real_callback, CallbackDataType *data);
 
     std::string _source {};
-    std::unique_ptr<ClientContext> _context {};
+
+    struct ContextHolder
+    {
+        std::unique_ptr<ClientContext> context{};
+    };
+    // deallocated in the finalizer of _callback.function set up in set_on_events(), or _stop()
+    ContextHolder *_context_holder {new ContextHolder {}};
 
     struct ThreadSafeFunctionHolder
     {
