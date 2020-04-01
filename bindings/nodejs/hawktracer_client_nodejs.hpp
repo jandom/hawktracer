@@ -27,10 +27,12 @@ public:
 private:
     void _stop();
     std::unique_ptr<std::vector<parser::Event>>
-    handle_event(std::unique_ptr<std::vector<parser::Event>> events, ClientContext::ConsumeMode consume_mode);
+    handle_events(std::unique_ptr<std::vector<parser::Event>> events, ClientContext::ConsumeMode consume_mode);
     static class Value convert_field_value(class Env env, const parser::Event::Value &value);
     static Object convert_event(class Env env, const parser::Event &event);
-    static void transform_and_callback(class Env env, Function real_callback, std::vector<parser::Event> *events);
+
+    using CallbackDataType = std::pair<Client*, std::unique_ptr<std::vector<parser::Event>>>;
+    static void convert_and_callback(class Env env, Function real_callback, CallbackDataType *data);
 
     std::string _source {};
     std::unique_ptr<ClientContext> _context {};
