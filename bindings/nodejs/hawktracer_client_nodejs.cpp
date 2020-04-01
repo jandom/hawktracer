@@ -109,9 +109,11 @@ Client::handle_events(std::unique_ptr<std::vector<parser::Event>> events, Client
     if (status == napi_queue_full) {
         ret = std::move(data->second);
     }
+    if (status != napi_ok && status != napi_queue_full) {
+        std::cerr << "Request for callback failed with error code: " << status << ", " << data->second->size()
+                  << " events are lost." << std::endl;
+    }
     if (status != napi_ok) {
-        std::cerr << "Request for callback failed with error code: " << status << ", "
-                  << (status == napi_queue_full ? 0u : data->second->size()) << " events are lost." << std::endl;
         delete data;
     }
     return ret;
