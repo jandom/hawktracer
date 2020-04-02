@@ -37,13 +37,13 @@ describe("2. Set up callback", () => {
         const source = require('path').join(__dirname, 'test.htdump');
         const hawkTracerClient = new HawkTracerClient(source);
 
-        const expected_count = 56;   // number of events in test.htdump
+        const expectedCount = 56;   // number of events in test.htdump
         let firstCount = 0;
         let secondCount = 0;
 
         const secondCallback = (events) => {
             secondCount += events.length;
-            checkEventsCount(firstCount + secondCount, expected_count, done);
+            checkEventsCount(firstCount + secondCount, expectedCount, done);
         };
 
         const firstCallback = (events) => {
@@ -51,7 +51,7 @@ describe("2. Set up callback", () => {
                 hawkTracerClient.onEvents(secondCallback);
             }
             firstCount += events.length;
-            checkEventsCount(firstCount + secondCount, expected_count, done);
+            checkEventsCount(firstCount + secondCount, expectedCount, done);
         };
 
         hawkTracerClient.onEvents(firstCallback);
@@ -84,11 +84,11 @@ describe("4. Receive events through callback", () => {
         const source = require('path').join(__dirname, 'test.htdump');
         const hawkTracerClient = new HawkTracerClient(source);
 
-        const expected_count = 56;   // number of events in test.htdump
+        const expectedCount = 56;   // number of events in test.htdump
         let count = 0;
         hawkTracerClient.onEvents((events: object[]) => {
             count += events.length;
-            checkEventsCount(count, expected_count, done);
+            checkEventsCount(count, expectedCount, done);
         });
         hawkTracerClient.start();
     });
@@ -106,12 +106,12 @@ describe("4. Receive events through callback", () => {
         const source = require('path').join(__dirname, 'test.htdump');
         const hawkTracerClient = new HawkTracerClient(source);
 
-        const expected_count = 56;   // number of events in test.htdump
+        const expectedCount = 56;   // number of events in test.htdump
         let count = 0;
         let delayed = false;
         hawkTracerClient.onEvents((events: object[]) => {
             count += events.length;
-            checkEventsCount(count, expected_count, done);
+            checkEventsCount(count, expectedCount, done);
 
             if (!delayed) {
                 delayed = true;
@@ -130,35 +130,26 @@ describe("5. Stop HawkTracerClient", () => {
         const hawkTracerClient = new HawkTracerClient(source);
 
         let i = 0;
+        let timer;
         hawkTracerClient.onEvents(() => {
-            ++i;
-            if (i == 1) {
-                // noinspection JSDeprecatedSymbols
-                hawkTracerClient.stop();
-                setTimeout(done, 500);
-                return;
-            }
-            expect(i).toBe(1);
+            clearTimeout(timer);
+            expect(++i).toBe(1);    // fails the second time
+            // noinspection JSDeprecatedSymbols
+            hawkTracerClient.stop();
+            timer = setTimeout(done, 500); // Wait for a while in case more events come in.
         });
-
         hawkTracerClient.start();
     });
+
+    test.todo("does not crash when not started.");
 });
 
 let countTimer;
 
-function checkEventsCount(count, expected_count, done) {
-    expect(count).toBeLessThanOrEqual(expected_count);
-    if (count == expected_count) {
-        setTimeout(done, 500); // Wait for a while in case more events come in.
+function checkEventsCount(count, expectedCount, done) {
+    clearTimeout(countTimer);
+    expect(count).toBeLessThanOrEqual(expectedCount);
+    if (count == expectedCount) {
+        countTimer = setTimeout(done, 500); // Wait for a while in case more events come in.
     }
-    clearTimeout(countTimer);
-    countTimer = setTimeout(() => {
-        expect(count).toBe(expected_count);
-    }, 4000);
 }
-
-afterEach(() => {
-    clearTimeout(countTimer);
-});
-
