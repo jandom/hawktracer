@@ -35,5 +35,9 @@ if (ENABLE_CLIENT)
             client_context.hpp)
     set_target_properties(nodejs_bindings_client PROPERTIES PREFIX "" OUTPUT_NAME hawk_tracer_client SUFFIX .node)
     target_link_libraries(nodejs_bindings_client PUBLIC node_addon_api hawktracer_parser hawktracer_client_utils)
-    file(MAKE_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+
+    # cmake-js specifies CMAKE_LIBRARY_OUTPUT_DIRECTORY.
+    add_custom_target(make_directory_for_nodejs_bindings_client
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+    add_dependencies(nodejs_bindings_client make_directory_for_nodejs_bindings_client)
 endif ()
