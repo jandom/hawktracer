@@ -33,77 +33,58 @@ Client::Client(const CallbackInfo &info)
 
 Client::~Client()
 {
-    _stop();
+    _state.stop();
 }
 
 Value Client::start(const CallbackInfo &info)
 {
-    _context_holder->context = ClientContext::create(
+    _state.start(ClientContext::create(
         _source,
         [this](std::unique_ptr<std::vector<parser::Event>> data, ClientContext::ConsumeMode consume_mode)
         {
             return handle_events(std::move(data), consume_mode);
-        });
-    return Boolean::New(info.Env(), static_cast<bool>(_context_holder->context));
+        }));
+    return Boolean::New(info.Env(), _state.is_started());
 }
 
 void Client::stop(const CallbackInfo &)
 {
-    _stop();
-}
-
-void Client::_stop()
-{
-    std::lock_guard<std::mutex> lock{_callback_mutex};
-    if (_callback) {
-        _callback->function.Abort();
-        _callback->function.Release();
-        _callback.reset();
-    }
-    else {
-        delete _context_holder;
-    }
+    _state.stop();
 }
 
 void Client::set_on_events(const CallbackInfo &info)
 {
-    std::lock_guard<std::mutex> lock{_callback_mutex};
-    if (_callback) {
-        // existing _context_holder will be deleted by the finalizer of existing _callback.function
-        _context_holder = new ContextHolder{std::move(*_context_holder)};
-        _callback->function.Release();
-    }
-    _callback.reset(new ThreadSafeFunctionHolder{
-        ThreadSafeFunction::New(info.Env(),
-                                info[0].As<Napi::Function>(),
-                                "HawkTracerClientOnEvent",
-                                1,
-                                1,
-                                [](class Env, decltype(_context_holder) context_holder)
-                                {
-                                    delete context_holder;
-                                },
-                                _context_holder)});
+    _state.set_function<class Env>(
+        [&info](State::Finalizer<class Env> finalizeCallback, State::FinalizerDataType *finalizerData)
+        {
+            return ThreadSafeFunction::New(info.Env(),
+                                           info[0].As<Napi::Function>(),
+                                           "HawkTracerClientOnEvent",
+                                           1,
+                                           1,
+                                           static_cast<void *>(nullptr),
+                                           finalizeCallback,
+                                           finalizerData);
+        });
 }
 
 // This method is called from reader thread, while all other methods are called from js main thread.
 std::unique_ptr<std::vector<parser::Event>>
 Client::handle_events(std::unique_ptr<std::vector<parser::Event>> events, ClientContext::ConsumeMode consume_mode)
 {
-    std::lock_guard<std::mutex> lock{_callback_mutex};
-    if (!_callback) {
-        return events;
-    }
-
-    // deallocated in convert_and_callback() or below in this method
-    auto data = new CallbackDataType{this, std::move(events)};
-    napi_status status;
-    if (consume_mode == ClientContext::ConsumeMode::FORCE_CONSUME) {
-        status = _callback->function.BlockingCall(data, &Client::convert_and_callback);
-    }
-    else {
-        status = _callback->function.NonBlockingCall(data, &Client::convert_and_callback);
-    }
+    CallbackDataType *data;
+    auto status = _state.use_function<napi_status>(
+        [&](ThreadSafeFunction f)
+        {
+            // deallocated in convert_and_callback() or below in this method
+            data = new CallbackDataType{this, std::move(events)};
+            if (consume_mode == ClientContext::ConsumeMode::FORCE_CONSUME) {
+                return f.BlockingCall(data, &Client::convert_and_callback);
+            }
+            else {
+                return f.NonBlockingCall(data, &Client::convert_and_callback);
+            }
+        });
 
     decltype(events) ret{};
     if (status == napi_queue_full) {
