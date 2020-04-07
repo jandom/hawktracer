@@ -44,11 +44,11 @@ private:
         struct FunctionHolder
         {
             ThreadSafeFunction function;
-            FunctionData *callback_data;    // always deallocated by ThreadSafeFunction finalizer
-            FunctionHolder(ThreadSafeFunction tsf, std::unique_ptr<FunctionData> cd)
-                : function(tsf), callback_data(cd.release())
+            FunctionData *function_data;    // always deallocated by ThreadSafeFunction finalizer
+            FunctionHolder(ThreadSafeFunction tsf, std::unique_ptr<FunctionData> fd)
+                : function(tsf), function_data(fd.release())
             {
-                assert(callback_data);
+                assert(function_data);
             }
             ~FunctionHolder()
             {
@@ -65,7 +65,7 @@ private:
         // * has_callback: non-null value with non-null CallbackData. callback_data->client_context could still be null.
         // * no_callback: null value
         std::unique_ptr<FunctionHolder> _function_holder{};
-        std::mutex _mutex{};
+        std::mutex _function_holder_mutex{};
         template<typename A>
         static void finalize(A /* provided by node-addon-api */, FunctionData *data, void *)
         {
@@ -75,29 +75,28 @@ private:
         {
             return _function_holder
                    // has_callback
-                   ? _function_holder->callback_data->client_context
+                   ? _function_holder->function_data->client_context
                    // no_callback
                    : _client_context;
         }
     public:
         bool is_started()
         {
-            std::lock_guard<std::mutex> lock{_mutex};
+            std::lock_guard<std::mutex> lock{_function_holder_mutex};
             return static_cast<bool>(actual_client_context());
         }
         // ?         X ?            => started   X ?
         void start(std::unique_ptr<ClientContext> cc)
         {
-            std::lock_guard<std::mutex> lock{_mutex};
+            std::lock_guard<std::mutex> lock{_function_holder_mutex};
             actual_client_context() = std::move(cc);
-            assert(!(_client_context && _function_holder && _function_holder->callback_data->client_context));
+            assert(!(_client_context && _function_holder && _function_holder->function_data->client_context));
         }
         // started   X ?            => stopped   X ?
         // stopped   X ?            => stopped   X ?
         // delegated X ?            => delegated X ?
         void stop()
         {
-            std::lock_guard<std::mutex> lock{_mutex};
             _client_context.reset();
         }
         template<typename A>
@@ -107,17 +106,17 @@ private:
         template<typename A>
         void set_function(std::function<ThreadSafeFunction(Finalizer<A>, FinalizerDataType *)> create)
         {
-            std::lock_guard<std::mutex> lock{_mutex};
+            std::lock_guard<std::mutex> lock{_function_holder_mutex};
             std::unique_ptr<FunctionData> data{new FunctionData{std::move(actual_client_context())}};
             ThreadSafeFunction function = create(finalize, data.get());
             _function_holder.reset(new FunctionHolder{function, std::move(data)});
-            assert(!(_client_context && _function_holder && _function_holder->callback_data->client_context));
+            assert(!(_client_context && _function_holder && _function_holder->function_data->client_context));
         }
         // started   X has_callback => started   X has_callback
         template<typename R>
         R use_function(std::function<R(ThreadSafeFunction)> use)
         {
-            std::lock_guard<std::mutex> lock{_mutex};
+            std::lock_guard<std::mutex> lock{_function_holder_mutex};
             return use(_function_holder->function);
         }
     };
