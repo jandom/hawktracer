@@ -37,19 +37,9 @@ private:
 
     class State
     {
-        struct FunctionData
-        {
-            std::unique_ptr<ClientContext> client_context;
-        };
         struct FunctionHolder
         {
             ThreadSafeFunction function;
-            FunctionData *function_data;    // always deallocated by ThreadSafeFunction finalizer
-            FunctionHolder(ThreadSafeFunction tsf, std::unique_ptr<FunctionData> fd)
-                : function(tsf), function_data(fd.release())
-            {
-                assert(function_data);
-            }
             ~FunctionHolder()
             {
                 function.Release();
@@ -64,33 +54,16 @@ private:
         // * has_callback: non-null value with non-null CallbackData. callback_data->client_context could still be null.
         // * no_callback: null value
         std::unique_ptr<FunctionHolder> _function_holder{};
-        std::mutex _function_holder_mutex{};
-        template<typename A>
-        static void finalize(A /* provided by node-addon-api */, FunctionData *data, void *)
-        {
-            delete data;
-        }
-        // need _function_holder_mutex acquired before calling actual_client_context()
-        std::unique_ptr<ClientContext> &actual_client_context()
-        {
-            return _function_holder
-                   // has_callback
-                   ? _function_holder->function_data->client_context
-                   // no_callback
-                   : _client_context;
-        }
+        mutable std::mutex _function_holder_mutex{};
     public:
-        bool is_started()
+        bool is_started() const
         {
-            std::lock_guard<std::mutex> lock{_function_holder_mutex};
-            return static_cast<bool>(actual_client_context());
+            return static_cast<bool>(_client_context);
         }
         // ?         X ?            => started   X ?
         void start(std::unique_ptr<ClientContext> cc)
         {
-            std::lock_guard<std::mutex> lock{_function_holder_mutex};
-            actual_client_context() = std::move(cc);
-            assert(!(_client_context && _function_holder && _function_holder->function_data->client_context));
+            _client_context = std::move(cc);
         }
         // started   X ?            => stopped   X ?
         // stopped   X ?            => stopped   X ?
@@ -106,21 +79,15 @@ private:
             }
             _client_context.reset();
         }
-        template<typename A>
-        using Finalizer = decltype(finalize<A>);
-        using FinalizerDataType = FunctionData;
         // ?         X ?            => delegated X has_callback
-        template<typename A>
-        void set_function(std::function<ThreadSafeFunction(Finalizer<A>, FinalizerDataType *)> create)
+        void set_function(ThreadSafeFunction threadSafeFunction)
         {
             std::lock_guard<std::mutex> lock{_function_holder_mutex};
-            std::unique_ptr<FunctionData> data{new FunctionData{std::move(actual_client_context())}};
-            ThreadSafeFunction function = create(finalize, data.get());
-            _function_holder.reset(new FunctionHolder{function, std::move(data)});
-            assert(!(_client_context && _function_holder && _function_holder->function_data->client_context));
+            _function_holder.reset(new FunctionHolder{threadSafeFunction});
         }
+        // This method is called from reader thread, while all other methods are called from js main thread.
         // started   X has_callback => started   X has_callback
-        napi_status use_function(const std::function<napi_status(ThreadSafeFunction)>& use)
+        napi_status use_function(const std::function<napi_status(ThreadSafeFunction)>& use) const
         {
             std::lock_guard<std::mutex> lock{_function_holder_mutex};
             if (!_function_holder)
@@ -128,10 +95,9 @@ private:
 
             return use(_function_holder->function);
         }
-        EventsPtr take_events()
+        EventsPtr take_events() const
         {
-            std::lock_guard<std::mutex> lock{_function_holder_mutex};
-            return actual_client_context()->take_events();
+            return _client_context? _client_context->take_events() : EventsPtr {new std::vector<parser::Event> {}};
         }
     };
     State _state;

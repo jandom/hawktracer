@@ -54,15 +54,11 @@ void Client::stop(const CallbackInfo &)
 
 void Client::set_on_events(const CallbackInfo &info)
 {
-    _state.set_function<class Env>(
-        [&info](State::Finalizer<class Env> finalizeCallback, State::FinalizerDataType *finalizerData)
-        {
-            return ThreadSafeFunction::New(info.Env(),
-                                           info[0].As<Napi::Function>(),
-                                           "HawkTracerClientOnEvent",
-                                           2,
-                                           1);
-        });
+    _state.set_function(ThreadSafeFunction::New(info.Env(),
+                                                info[0].As<Napi::Function>(),
+                                                "HawkTracerClientOnEvent",
+                                                2,
+                                                1));
 }
 
 // This method is called from reader thread, while all other methods are called from js main thread.
