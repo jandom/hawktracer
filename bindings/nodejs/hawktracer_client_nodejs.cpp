@@ -60,11 +60,8 @@ void Client::set_on_events(const CallbackInfo &info)
             return ThreadSafeFunction::New(info.Env(),
                                            info[0].As<Napi::Function>(),
                                            "HawkTracerClientOnEvent",
-                                           1,
-                                           1,
-                                           static_cast<void *>(nullptr),
-                                           finalizeCallback,
-                                           finalizerData);
+                                           2,
+                                           1);
         });
 }
 
@@ -143,11 +140,7 @@ void Client::convert_and_callback(class Env env, Function real_callback, Callbac
 {
     std::unique_ptr<CallbackDataType> data_deallocation_guard{data};
     Client *calling_object = data->first;
-    std::vector<parser::Event> *events = data->second.get();
-
-    // Prevent Client destruction, which could result in blocking call in handle_events(), which is blocked by
-    // real_callback running in js thread, forming deadlock.
-    calling_object->Ref();
+    EventsPtr events = calling_object->_state.take_events();
 
     Array array = Array::New(env);
     int i = 0;
@@ -158,8 +151,6 @@ void Client::convert_and_callback(class Env env, Function real_callback, Callbac
                       array[i++] = convert_event(env, e);
                   });
     real_callback.Call({array});
-
-    calling_object->Unref();
 }
 
 } // namespace Nodejs

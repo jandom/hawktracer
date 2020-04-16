@@ -33,22 +33,11 @@ ClientContext::ClientContext(std::unique_ptr<parser::ProtocolReader> reader,
     _reader->register_events_listener(
         [this](const parser::Event &event)
         {
-            if (!_events) {
-                _events.reset(new std::vector<parser::Event>{});
+            {
+                std::lock_guard<std::mutex> lock{_buffer_mutex};
+                _buffer->push_back(event);
             }
-            _events->push_back(event);
-            _events = _event_callback(std::move(_events), ConsumeMode::TRY_CONSUME);
-        });
-    _reader->register_complete_listener(
-        [this]()
-        {
-            if (!_events || _events->empty()) {
-                return;
-            }
-            _events = _event_callback(std::move(_events), ConsumeMode::FORCE_CONSUME);
-            if (_events && !_events->empty()) {
-                std::cerr << _events->size() << " events were not processed." << std::endl;
-            }
+            _event_callback({}, ConsumeMode::TRY_CONSUME);
         });
 
     _reader->start();
@@ -57,6 +46,15 @@ ClientContext::ClientContext(std::unique_ptr<parser::ProtocolReader> reader,
 ClientContext::~ClientContext()
 {
     _reader->stop();
+}
+
+EventsPtr ClientContext::take_events()
+{
+    EventsPtr new_buffer {new std::vector<parser::Event> {}};
+
+    std::lock_guard<std::mutex> lock{_buffer_mutex};
+    new_buffer.swap(_buffer);
+    return new_buffer;
 }
 
 } // namespace Nodejs

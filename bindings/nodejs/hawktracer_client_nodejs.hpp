@@ -128,6 +128,11 @@ private:
 
             return use(_function_holder->function);
         }
+        EventsPtr take_events()
+        {
+            std::lock_guard<std::mutex> lock{_function_holder_mutex};
+            return actual_client_context()->take_events();
+        }
     };
     State _state;
 };

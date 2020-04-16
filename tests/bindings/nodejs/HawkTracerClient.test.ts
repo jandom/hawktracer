@@ -38,7 +38,7 @@ describe("2. Set up callback", () => {
         hawkTracerClient.start();
     });
 
-    test.skip("receives all events when the events listener is replaced", (done) => {
+    test("receives all events when the events listener is replaced", (done) => {
         const expectedCount = 56;   // number of events in test.htdump
         let firstCount = 0;
         let secondCount = 0;
@@ -135,7 +135,7 @@ describe("5. Stop HawkTracerClient", () => {
 
     afterEach(() => hawkTracerClient.stop());
 
-    test.skip("succeeds and events stop coming", (done) => {
+    test("succeeds and events stop coming", (done) => {
         let i = 0;
         let timer;
         hawkTracerClient.onEvents(() => {

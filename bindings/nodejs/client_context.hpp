@@ -12,6 +12,8 @@ namespace HawkTracer
 namespace Nodejs
 {
 
+using EventsPtr = std::unique_ptr<std::vector<parser::Event>>;
+
 class ClientContext
 {
 public:
@@ -19,11 +21,12 @@ public:
     {
         TRY_CONSUME, FORCE_CONSUME
     };
-    using EventCallback = std::function<std::unique_ptr<std::vector<parser::Event>>(std::unique_ptr<std::vector<parser::Event>>,
-                                                                                    ConsumeMode)>;
+    using EventCallback = std::function<EventsPtr(EventsPtr, ConsumeMode)>;
     static std::unique_ptr<ClientContext> create(const std::string &source, EventCallback event_callback);
 
     ~ClientContext();
+
+    EventsPtr take_events();
 
 private:
     ClientContext(std::unique_ptr<parser::ProtocolReader> reader,
@@ -34,7 +37,8 @@ private:
     const std::unique_ptr<const parser::KlassRegister> _klass_register;
     const EventCallback _event_callback;
 
-    std::unique_ptr<std::vector<parser::Event>> _events;
+    EventsPtr _buffer {new std::vector<parser::Event>{}};
+    std::mutex _buffer_mutex {};
 };
 
 } // namespace Nodejs
