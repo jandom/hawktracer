@@ -54,6 +54,9 @@ void Client::stop(const CallbackInfo &)
 
 void Client::set_on_events(const CallbackInfo &info)
 {
+    // maxQueueSize is set to 2 so that even though the first callback is already running there's room for a new callback.
+    // If 2 slots are already filled up, the second callback will pick up the new events with take_events(),
+    // in which case we can ignore napi_queue_full.
     _state.set_function(ThreadSafeFunction::New(info.Env(),
                                                 info[0].As<Napi::Function>(),
                                                 "HawkTracerClientOnEvent",
@@ -67,7 +70,6 @@ void Client::notify_new_event()
     // prevents this from garbage-collected before the callback is finished
     Ref();
 
-    // deallocated in convert_and_callback() or below in this method
     auto status = _state.use_function(
         [this](ThreadSafeFunction f)
         {
@@ -75,6 +77,7 @@ void Client::notify_new_event()
         });
 
     if (status != napi_ok) {
+        // Callback was not added in the queue, hence no need to increase the reference count.
         Unref();
     }
 

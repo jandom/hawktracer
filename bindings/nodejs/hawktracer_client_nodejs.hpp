@@ -44,11 +44,10 @@ private:
         };
         // _client_context states
         // * started: non-null value
-        // * delegated: null value. _function_holder has the actual value.
         // * stopped: null value
         std::unique_ptr<ClientContext> _client_context{};
         // _function_holder states
-        // * has_callback: non-null value with non-null CallbackData. callback_data->client_context could still be null.
+        // * has_callback: non-null value
         // * no_callback: null value
         std::unique_ptr<FunctionHolder> _function_holder{};
         mutable std::mutex _function_holder_mutex{};
@@ -62,28 +61,25 @@ private:
         {
             _client_context = std::move(cc);
         }
-        // started   X ?            => stopped   X ?
-        // stopped   X ?            => stopped   X ?
-        // delegated X ?            => delegated X ?
+        // ?         X ?            => stopped   X no_callback
         void stop()
         {
             {
                 std::lock_guard<std::mutex> lock{_function_holder_mutex};
                 if (_function_holder) {
-                    _function_holder->function.Abort();
+                    _function_holder->function.Abort(); // cancels callbacks already in queue
                     _function_holder.reset();
                 }
             }
             _client_context.reset();
         }
-        // ?         X ?            => delegated X has_callback
+        // ?         X ?            => ?         X has_callback
         void set_function(ThreadSafeFunction threadSafeFunction)
         {
             std::lock_guard<std::mutex> lock{_function_holder_mutex};
             _function_holder.reset(new FunctionHolder{threadSafeFunction});
         }
         // This method is called from reader thread, while all other methods are called from js main thread.
-        // started   X has_callback => started   X has_callback
         napi_status use_function(const std::function<napi_status(ThreadSafeFunction)> &use) const
         {
             std::lock_guard<std::mutex> lock{_function_holder_mutex};
