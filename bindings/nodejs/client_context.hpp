@@ -12,16 +12,11 @@ namespace HawkTracer
 namespace Nodejs
 {
 
-using EventsPtr = std::unique_ptr<std::vector<parser::Event>>;
-
 class ClientContext
 {
 public:
-    enum class ConsumeMode
-    {
-        TRY_CONSUME, FORCE_CONSUME
-    };
-    using EventCallback = std::function<EventsPtr(EventsPtr, ConsumeMode)>;
+    using EventCallback = std::function<void()>;
+    using EventsPtr = std::unique_ptr<std::vector<parser::Event>>;
     static std::unique_ptr<ClientContext> create(const std::string &source, EventCallback event_callback);
 
     ~ClientContext();

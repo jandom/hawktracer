@@ -1,7 +1,6 @@
 #include "hawktracer_client_nodejs.hpp"
 
 #include <iostream>
-#include <utility>
 
 namespace HawkTracer
 {
@@ -38,12 +37,13 @@ Client::~Client()
 
 Value Client::start(const CallbackInfo &info)
 {
-    _state.start(ClientContext::create(
-        _source,
-        [this](std::unique_ptr<std::vector<parser::Event>> data, ClientContext::ConsumeMode consume_mode)
-        {
-            return handle_events(std::move(data), consume_mode);
-        }));
+    _state.start(
+        ClientContext::create(
+            _source,
+            [this]()
+            {
+                notify_new_event();
+            }));
     return Boolean::New(info.Env(), _state.is_started());
 }
 
@@ -62,35 +62,25 @@ void Client::set_on_events(const CallbackInfo &info)
 }
 
 // This method is called from reader thread, while all other methods are called from js main thread.
-std::unique_ptr<std::vector<parser::Event>>
-Client::handle_events(std::unique_ptr<std::vector<parser::Event>> events, ClientContext::ConsumeMode consume_mode)
+void Client::notify_new_event()
 {
+    // prevents this from garbage-collected before the callback is finished
+    Ref();
+
     // deallocated in convert_and_callback() or below in this method
-    auto data = new CallbackDataType{this, std::move(events)};
     auto status = _state.use_function(
-        [&](ThreadSafeFunction f)
+        [this](ThreadSafeFunction f)
         {
-            if (consume_mode == ClientContext::ConsumeMode::FORCE_CONSUME) {
-                return f.BlockingCall(data, &Client::convert_and_callback);
-            }
-            else {
-                return f.NonBlockingCall(data, &Client::convert_and_callback);
-            }
+            return f.NonBlockingCall(this, &Client::convert_and_callback);
         });
 
-    if (status != napi_ok && status != napi_queue_full) {
-        std::cerr << "Request for callback failed with error code: " << status << ", " << data->second->size()
-                  << " events are lost." << std::endl;
+    if (status != napi_ok) {
+        Unref();
     }
 
-    decltype(events) ret{};
-    if (status == napi_queue_full) {
-        ret = std::move(data->second);
+    if (status != napi_ok && status != napi_queue_full) {
+        std::cerr << "Request for callback failed with error code: " << status << std::endl;
     }
-    if (status != napi_ok) {
-        delete data;
-    }
-    return ret;
 }
 
 Value Client::convert_field_value(class Env env, const parser::Event::Value &value)
@@ -132,11 +122,9 @@ Object Client::convert_event(class Env env, const parser::Event &event)
     return o;
 }
 
-void Client::convert_and_callback(class Env env, Function real_callback, CallbackDataType *data)
+void Client::convert_and_callback(class Env env, Function real_callback, Client *calling_object)
 {
-    std::unique_ptr<CallbackDataType> data_deallocation_guard{data};
-    Client *calling_object = data->first;
-    EventsPtr events = calling_object->_state.take_events();
+    ClientContext::EventsPtr events = calling_object->_state.take_events();
 
     Array array = Array::New(env);
     int i = 0;
@@ -147,6 +135,9 @@ void Client::convert_and_callback(class Env env, Function real_callback, Callbac
                       array[i++] = convert_event(env, e);
                   });
     real_callback.Call({array});
+
+    // Now calling_object can be garbage-collected
+    calling_object->Unref();
 }
 
 } // namespace Nodejs

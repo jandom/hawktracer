@@ -2,7 +2,6 @@
 
 #include "hawktracer/client_utils/stream_factory.hpp"
 #include "hawktracer/parser/make_unique.hpp"
-#include <iostream>
 #include <utility>
 
 namespace HawkTracer
@@ -35,9 +34,9 @@ ClientContext::ClientContext(std::unique_ptr<parser::ProtocolReader> reader,
         {
             {
                 std::lock_guard<std::mutex> lock{_buffer_mutex};
-                _buffer->push_back(event);
+                _buffer->push_back(event);  // Event is copied once.
             }
-            _event_callback({}, ConsumeMode::TRY_CONSUME);
+            _event_callback();
         });
 
     _reader->start();
@@ -48,9 +47,9 @@ ClientContext::~ClientContext()
     _reader->stop();
 }
 
-EventsPtr ClientContext::take_events()
+ClientContext::EventsPtr ClientContext::take_events()
 {
-    EventsPtr new_buffer {new std::vector<parser::Event> {}};
+    EventsPtr new_buffer{new std::vector<parser::Event>{}};
 
     std::lock_guard<std::mutex> lock{_buffer_mutex};
     new_buffer.swap(_buffer);

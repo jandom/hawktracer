@@ -25,13 +25,10 @@ public:
     void set_on_events(const CallbackInfo &info);
 
 private:
-    std::unique_ptr<std::vector<parser::Event>>
-    handle_events(std::unique_ptr<std::vector<parser::Event>> events, ClientContext::ConsumeMode consume_mode);
+    void notify_new_event();
     static class Value convert_field_value(class Env env, const parser::Event::Value &value);
     static Object convert_event(class Env env, const parser::Event &event);
-
-    using CallbackDataType = std::pair<Client *, std::unique_ptr<std::vector<parser::Event>>>;
-    static void convert_and_callback(class Env env, Function real_callback, CallbackDataType *data);
+    static void convert_and_callback(class Env env, Function real_callback, Client *client);
 
     std::string _source{};
 
@@ -87,7 +84,7 @@ private:
         }
         // This method is called from reader thread, while all other methods are called from js main thread.
         // started   X has_callback => started   X has_callback
-        napi_status use_function(const std::function<napi_status(ThreadSafeFunction)>& use) const
+        napi_status use_function(const std::function<napi_status(ThreadSafeFunction)> &use) const
         {
             std::lock_guard<std::mutex> lock{_function_holder_mutex};
             if (!_function_holder)
@@ -95,9 +92,11 @@ private:
 
             return use(_function_holder->function);
         }
-        EventsPtr take_events() const
+        ClientContext::EventsPtr take_events() const
         {
-            return _client_context? _client_context->take_events() : EventsPtr {new std::vector<parser::Event> {}};
+            return _client_context ?
+                   _client_context->take_events() :
+                   ClientContext::EventsPtr{new std::vector<parser::Event>{}};
         }
     };
     State _state;
