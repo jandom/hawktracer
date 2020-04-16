@@ -72,12 +72,11 @@ void Client::set_on_events(const CallbackInfo &info)
 std::unique_ptr<std::vector<parser::Event>>
 Client::handle_events(std::unique_ptr<std::vector<parser::Event>> events, ClientContext::ConsumeMode consume_mode)
 {
-    CallbackDataType *data;
-    auto status = _state.use_function<napi_status>(
+    // deallocated in convert_and_callback() or below in this method
+    auto data = new CallbackDataType{this, std::move(events)};
+    auto status = _state.use_function(
         [&](ThreadSafeFunction f)
         {
-            // deallocated in convert_and_callback() or below in this method
-            data = new CallbackDataType{this, std::move(events)};
             if (consume_mode == ClientContext::ConsumeMode::FORCE_CONSUME) {
                 return f.BlockingCall(data, &Client::convert_and_callback);
             }
@@ -86,13 +85,14 @@ Client::handle_events(std::unique_ptr<std::vector<parser::Event>> events, Client
             }
         });
 
-    decltype(events) ret{};
-    if (status == napi_queue_full) {
-        ret = std::move(data->second);
-    }
     if (status != napi_ok && status != napi_queue_full) {
         std::cerr << "Request for callback failed with error code: " << status << ", " << data->second->size()
                   << " events are lost." << std::endl;
+    }
+
+    decltype(events) ret{};
+    if (status == napi_queue_full) {
+        ret = std::move(data->second);
     }
     if (status != napi_ok) {
         delete data;

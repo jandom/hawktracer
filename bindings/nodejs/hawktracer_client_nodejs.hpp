@@ -52,7 +52,6 @@ private:
             }
             ~FunctionHolder()
             {
-                function.Abort();
                 function.Release();
             }
         };
@@ -71,6 +70,7 @@ private:
         {
             delete data;
         }
+        // need _function_holder_mutex acquired before calling actual_client_context()
         std::unique_ptr<ClientContext> &actual_client_context()
         {
             return _function_holder
@@ -97,6 +97,13 @@ private:
         // delegated X ?            => delegated X ?
         void stop()
         {
+            {
+                std::lock_guard<std::mutex> lock{_function_holder_mutex};
+                if (_function_holder) {
+                    _function_holder->function.Abort();
+                    _function_holder.reset();
+                }
+            }
             _client_context.reset();
         }
         template<typename A>
@@ -113,10 +120,12 @@ private:
             assert(!(_client_context && _function_holder && _function_holder->function_data->client_context));
         }
         // started   X has_callback => started   X has_callback
-        template<typename R>
-        R use_function(std::function<R(ThreadSafeFunction)> use)
+        napi_status use_function(const std::function<napi_status(ThreadSafeFunction)>& use)
         {
             std::lock_guard<std::mutex> lock{_function_holder_mutex};
+            if (!_function_holder)
+                return napi_queue_full;
+
             return use(_function_holder->function);
         }
     };
