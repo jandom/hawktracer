@@ -10,7 +10,7 @@ namespace HawkTracer
 namespace Nodejs
 {
 
-std::unique_ptr<ClientContext> ClientContext::create(const std::string &source, EventCallback event_callback)
+std::unique_ptr<ClientContext> ClientContext::create(const std::string& source, EventCallback event_callback)
 {
     std::unique_ptr<parser::Stream> stream = ClientUtils::make_stream_from_string(source);
     if (!stream) {
@@ -30,7 +30,7 @@ ClientContext::ClientContext(std::unique_ptr<parser::ProtocolReader> reader,
     : _klass_register(std::move(klass_register)), _reader(std::move(reader)), _event_callback(std::move(event_callback))
 {
     _reader->register_events_listener(
-        [this](const parser::Event &event)
+        [this](const parser::Event& event)
         {
             {
                 std::lock_guard<std::mutex> lock{_buffer_mutex};

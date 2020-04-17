@@ -24,13 +24,13 @@ Object Client::init_bindings(const class Env& env, Object exports)
     return exports;
 }
 
-Client::Client(const CallbackInfo &info)
+Client::Client(const CallbackInfo& info)
     : ObjectWrap<Client>(info)
 {
     _source = info[0].As<String>();
 }
 
-Value Client::start(const CallbackInfo &info)
+Value Client::start(const CallbackInfo& info)
 {
     _state.start(
         ClientContext::create(
@@ -42,13 +42,13 @@ Value Client::start(const CallbackInfo &info)
     return Boolean::New(info.Env(), _state.is_started());
 }
 
-void Client::stop(const CallbackInfo &)
+void Client::stop(const CallbackInfo&)
 {
     _state.stop();
     Reset();
 }
 
-void Client::set_on_events(const CallbackInfo &info)
+void Client::set_on_events(const CallbackInfo& info)
 {
     // maxQueueSize is set to 2 so that even though the first callback is already running there's room for a new callback.
     // If 2 slots are already filled up, the second callback will pick up the new events with take_events(),
@@ -82,7 +82,7 @@ void Client::_notify_new_event()
     }
 }
 
-Value Client::_convert_field_value(const class Env& env, const parser::Event::Value &value)
+Value Client::_convert_field_value(const class Env& env, const parser::Event::Value& value)
 {
     switch (value.field->get_type_id()) {
         case parser::FieldTypeId::UINT8:
@@ -112,16 +112,16 @@ Value Client::_convert_field_value(const class Env& env, const parser::Event::Va
     }
 }
 
-Object Client::_convert_event(const class Env& env, const parser::Event &event)
+Object Client::_convert_event(const class Env& env, const parser::Event& event)
 {
     auto o = Object::New(env);
-    for (const auto &it: event.get_values()) {
+    for (const auto& it: event.get_values()) {
         o.Set(it.first, _convert_field_value(env, it.second));
     }
     return o;
 }
 
-void Client::_convert_and_callback(const class Env& env, Function real_callback, Client *calling_object)
+void Client::_convert_and_callback(const class Env& env, Function real_callback, Client* calling_object)
 {
     ClientContext::EventsPtr events = calling_object->_state.take_events();
 
@@ -129,7 +129,7 @@ void Client::_convert_and_callback(const class Env& env, Function real_callback,
     int i = 0;
     std::for_each(events->cbegin(),
                   events->cend(),
-                  [env, &array, &i](const parser::Event &e)
+                  [env, &array, &i](const parser::Event& e)
                   {
                       array[i++] = _convert_event(env, e);
                   });

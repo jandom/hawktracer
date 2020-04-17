@@ -17,17 +17,17 @@ class Client: public ObjectWrap<Client>
 public:
     static Object init_bindings(const class Env& env, Object exports);
 
-    explicit Client(const CallbackInfo &info);
+    explicit Client(const CallbackInfo& info);
 
-    class Value start(const CallbackInfo &info);
-    void stop(const CallbackInfo &info);
-    void set_on_events(const CallbackInfo &info);
+    class Value start(const CallbackInfo& info);
+    void stop(const CallbackInfo& info);
+    void set_on_events(const CallbackInfo& info);
 
 private:
     void _notify_new_event();
-    static class Value _convert_field_value(const class Env& env, const parser::Event::Value &value);
-    static Object _convert_event(const class Env& env, const parser::Event &event);
-    static void _convert_and_callback(const class Env& env, Function real_callback, Client *client);
+    static class Value _convert_field_value(const class Env& env, const parser::Event::Value& value);
+    static Object _convert_event(const class Env& env, const parser::Event& event);
+    static void _convert_and_callback(const class Env& env, Function real_callback, Client* client);
 
     std::string _source;
 
@@ -79,7 +79,7 @@ private:
             _function_holder.reset(new FunctionHolder{threadSafeFunction});
         }
         // This method is called from reader thread, while all other methods are called from js main thread.
-        napi_status use_function(const std::function<napi_status(ThreadSafeFunction)> &use) const
+        napi_status use_function(const std::function<napi_status(ThreadSafeFunction)>& use) const
         {
             std::lock_guard<std::mutex> lock{_function_holder_mutex};
             if (!_function_holder)
