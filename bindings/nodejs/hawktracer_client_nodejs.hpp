@@ -87,11 +87,9 @@ private:
 
             return use(_function_holder->function);
         }
-        ClientContext::EventsPtr take_events() const
+        std::vector<parser::Event> take_events() const
         {
-            return _client_context ?
-                   _client_context->take_events() :
-                   ClientContext::EventsPtr{new std::vector<parser::Event>{}};
+            return _client_context ? _client_context->take_events() : std::vector<parser::Event>{};
         }
     };
     State _state;

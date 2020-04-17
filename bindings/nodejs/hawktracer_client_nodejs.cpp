@@ -123,12 +123,12 @@ Object Client::_convert_event(const class Env& env, const parser::Event& event)
 
 void Client::_convert_and_callback(const class Env& env, Function real_callback, Client* calling_object)
 {
-    ClientContext::EventsPtr events = calling_object->_state.take_events();
+    std::vector<parser::Event> events = calling_object->_state.take_events();
 
     Array array = Array::New(env);
     int i = 0;
-    std::for_each(events->cbegin(),
-                  events->cend(),
+    std::for_each(events.cbegin(),
+                  events.cend(),
                   [env, &array, &i](const parser::Event& e)
                   {
                       array[i++] = _convert_event(env, e);

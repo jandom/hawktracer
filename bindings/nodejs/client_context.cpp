@@ -34,7 +34,7 @@ ClientContext::ClientContext(std::unique_ptr<parser::ProtocolReader> reader,
         {
             {
                 std::lock_guard<std::mutex> lock{_buffer_mutex};
-                _buffer->push_back(event);  // Event is copied once.
+                _buffer.push_back(event);  // Event is copied once.
             }
             _event_callback();
         });
@@ -46,18 +46,17 @@ ClientContext::~ClientContext()
 {
     _reader->stop();
 
-    if (!_buffer->empty()) {
-        std::cerr << _buffer->size() << " events were not processed." << std::endl;
+    if (!_buffer.empty()) {
+        std::cerr << _buffer.size() << " events were not processed." << std::endl;
     }
 }
 
 // This method can be called from any thread, while the event listener is called from reader thread.
-ClientContext::EventsPtr ClientContext::take_events()
+std::vector<parser::Event> ClientContext::take_events()
 {
-    EventsPtr new_buffer{new std::vector<parser::Event>{}};
-
     std::lock_guard<std::mutex> lock{_buffer_mutex};
-    new_buffer.swap(_buffer);
+    std::vector<parser::Event> new_buffer;
+    std::swap(new_buffer, _buffer);
     return new_buffer;
 }
 
