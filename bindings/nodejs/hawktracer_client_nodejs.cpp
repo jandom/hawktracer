@@ -7,7 +7,7 @@ namespace HawkTracer
 namespace Nodejs
 {
 
-Object Client::init_bindings(class Env env, Object exports)
+Object Client::init_bindings(const class Env& env, Object exports)
 {
     HandleScope scope(env);
 
@@ -28,11 +28,6 @@ Client::Client(const CallbackInfo &info)
     : ObjectWrap<Client>(info)
 {
     _source = info[0].As<String>();
-}
-
-Client::~Client()
-{
-    _state.stop();
 }
 
 Value Client::start(const CallbackInfo &info)
@@ -86,7 +81,7 @@ void Client::notify_new_event()
     }
 }
 
-Value Client::convert_field_value(class Env env, const parser::Event::Value &value)
+Value Client::convert_field_value(const class Env& env, const parser::Event::Value &value)
 {
     switch (value.field->get_type_id()) {
         case parser::FieldTypeId::UINT8:
@@ -116,7 +111,7 @@ Value Client::convert_field_value(class Env env, const parser::Event::Value &val
     }
 }
 
-Object Client::convert_event(class Env env, const parser::Event &event)
+Object Client::convert_event(const class Env& env, const parser::Event &event)
 {
     auto o = Object::New(env);
     for (const auto &it: event.get_values()) {
@@ -125,7 +120,7 @@ Object Client::convert_event(class Env env, const parser::Event &event)
     return o;
 }
 
-void Client::convert_and_callback(class Env env, Function real_callback, Client *calling_object)
+void Client::convert_and_callback(const class Env& env, Function real_callback, Client *calling_object)
 {
     ClientContext::EventsPtr events = calling_object->_state.take_events();
 

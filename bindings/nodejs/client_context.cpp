@@ -2,6 +2,7 @@
 
 #include "hawktracer/client_utils/stream_factory.hpp"
 #include "hawktracer/parser/make_unique.hpp"
+#include <iostream>
 #include <utility>
 
 namespace HawkTracer
@@ -27,7 +28,7 @@ std::unique_ptr<ClientContext> ClientContext::create(const std::string &source, 
 ClientContext::ClientContext(std::unique_ptr<parser::ProtocolReader> reader,
                              std::unique_ptr<parser::KlassRegister> klass_register,
                              EventCallback event_callback)
-    : _reader(std::move(reader)), _klass_register(std::move(klass_register)), _event_callback(std::move(event_callback))
+    : _klass_register(std::move(klass_register)), _reader(std::move(reader)), _event_callback(std::move(event_callback))
 {
     _reader->register_events_listener(
         [this](const parser::Event &event)
@@ -45,8 +46,13 @@ ClientContext::ClientContext(std::unique_ptr<parser::ProtocolReader> reader,
 ClientContext::~ClientContext()
 {
     _reader->stop();
+
+    if (!_buffer->empty()) {
+        std::cerr << _buffer->size() << " events were not processed." << std::endl;
+    }
 }
 
+// This method can be called from any thread, while the event listener is called from reader thread.
 ClientContext::EventsPtr ClientContext::take_events()
 {
     EventsPtr new_buffer{new std::vector<parser::Event>{}};

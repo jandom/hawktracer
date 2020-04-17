@@ -15,10 +15,9 @@ using namespace Napi;
 class Client: public ObjectWrap<Client>
 {
 public:
-    static Object init_bindings(class Env env, Object exports);
+    static Object init_bindings(const class Env& env, Object exports);
 
     explicit Client(const CallbackInfo &info);
-    ~Client() override;
 
     class Value start(const CallbackInfo &info);
     void stop(const CallbackInfo &info);
@@ -26,9 +25,9 @@ public:
 
 private:
     void notify_new_event();
-    static class Value convert_field_value(class Env env, const parser::Event::Value &value);
-    static Object convert_event(class Env env, const parser::Event &event);
-    static void convert_and_callback(class Env env, Function real_callback, Client *client);
+    static class Value convert_field_value(const class Env& env, const parser::Event::Value &value);
+    static Object convert_event(const class Env& env, const parser::Event &event);
+    static void convert_and_callback(const class Env& env, Function real_callback, Client *client);
 
     std::string _source{};
 

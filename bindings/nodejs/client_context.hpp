@@ -16,11 +16,11 @@ class ClientContext
 {
 public:
     using EventCallback = std::function<void()>;
-    using EventsPtr = std::unique_ptr<std::vector<parser::Event>>;
     static std::unique_ptr<ClientContext> create(const std::string &source, EventCallback event_callback);
 
     ~ClientContext();
 
+    using EventsPtr = std::unique_ptr<std::vector<parser::Event>>;
     EventsPtr take_events();
 
 private:
@@ -28,8 +28,8 @@ private:
                   std::unique_ptr<parser::KlassRegister> klass_register,
                   EventCallback event_callback);
 
+    const std::unique_ptr<const parser::KlassRegister> _klass_register; // needs to be destructed after _reader
     const std::unique_ptr<parser::ProtocolReader> _reader;
-    const std::unique_ptr<const parser::KlassRegister> _klass_register;
     const EventCallback _event_callback;
 
     EventsPtr _buffer {new std::vector<parser::Event>{}};
