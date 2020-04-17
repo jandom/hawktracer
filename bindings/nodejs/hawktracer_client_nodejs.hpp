@@ -29,7 +29,7 @@ private:
     static Object _convert_event(const class Env& env, const parser::Event &event);
     static void _convert_and_callback(const class Env& env, Function real_callback, Client *client);
 
-    std::string _source{};
+    std::string _source;
 
     class State
     {
@@ -44,12 +44,12 @@ private:
         // _client_context states
         // * started: non-null value
         // * stopped: null value
-        std::unique_ptr<ClientContext> _client_context{};
+        std::unique_ptr<ClientContext> _client_context;
         // _function_holder states
         // * has_callback: non-null value
         // * no_callback: null value
-        std::unique_ptr<FunctionHolder> _function_holder{};
-        mutable std::mutex _function_holder_mutex{};
+        std::unique_ptr<FunctionHolder> _function_holder;
+        mutable std::mutex _function_holder_mutex;
     public:
         bool is_started() const
         {

@@ -32,8 +32,8 @@ private:
     const std::unique_ptr<parser::ProtocolReader> _reader;
     const EventCallback _event_callback;
 
-    EventsPtr _buffer {new std::vector<parser::Event>{}};
-    std::mutex _buffer_mutex {};
+    EventsPtr _buffer {new std::vector<parser::Event>};
+    std::mutex _buffer_mutex;
 };
 
 } // namespace Nodejs
