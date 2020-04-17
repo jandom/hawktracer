@@ -37,7 +37,7 @@ Value Client::start(const CallbackInfo &info)
             _source,
             [this]()
             {
-                notify_new_event();
+                _notify_new_event();
             }));
     return Boolean::New(info.Env(), _state.is_started());
 }
@@ -61,7 +61,7 @@ void Client::set_on_events(const CallbackInfo &info)
 }
 
 // This method is called from reader thread, while all other methods are called from js main thread.
-void Client::notify_new_event()
+void Client::_notify_new_event()
 {
     // prevents this from garbage-collected before the callback is finished
     Ref();
@@ -69,7 +69,7 @@ void Client::notify_new_event()
     auto status = _state.use_function(
         [this](ThreadSafeFunction f)
         {
-            return f.NonBlockingCall(this, &Client::convert_and_callback);
+            return f.NonBlockingCall(this, &Client::_convert_and_callback);
         });
 
     if (status != napi_ok) {
@@ -82,7 +82,7 @@ void Client::notify_new_event()
     }
 }
 
-Value Client::convert_field_value(const class Env& env, const parser::Event::Value &value)
+Value Client::_convert_field_value(const class Env& env, const parser::Event::Value &value)
 {
     switch (value.field->get_type_id()) {
         case parser::FieldTypeId::UINT8:
@@ -106,22 +106,22 @@ Value Client::convert_field_value(const class Env& env, const parser::Event::Val
         case parser::FieldTypeId::POINTER:
             return String::New(env, "(pointer)");
         case parser::FieldTypeId::STRUCT:
-            return convert_event(env, *value.value.f_EVENT);
+            return _convert_event(env, *value.value.f_EVENT);
         default:
             assert(0);
     }
 }
 
-Object Client::convert_event(const class Env& env, const parser::Event &event)
+Object Client::_convert_event(const class Env& env, const parser::Event &event)
 {
     auto o = Object::New(env);
     for (const auto &it: event.get_values()) {
-        o.Set(it.first, convert_field_value(env, it.second));
+        o.Set(it.first, _convert_field_value(env, it.second));
     }
     return o;
 }
 
-void Client::convert_and_callback(const class Env& env, Function real_callback, Client *calling_object)
+void Client::_convert_and_callback(const class Env& env, Function real_callback, Client *calling_object)
 {
     ClientContext::EventsPtr events = calling_object->_state.take_events();
 
@@ -131,7 +131,7 @@ void Client::convert_and_callback(const class Env& env, Function real_callback, 
                   events->cend(),
                   [env, &array, &i](const parser::Event &e)
                   {
-                      array[i++] = convert_event(env, e);
+                      array[i++] = _convert_event(env, e);
                   });
     real_callback.Call({array});
 

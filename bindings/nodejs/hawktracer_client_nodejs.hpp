@@ -24,10 +24,10 @@ public:
     void set_on_events(const CallbackInfo &info);
 
 private:
-    void notify_new_event();
-    static class Value convert_field_value(const class Env& env, const parser::Event::Value &value);
-    static Object convert_event(const class Env& env, const parser::Event &event);
-    static void convert_and_callback(const class Env& env, Function real_callback, Client *client);
+    void _notify_new_event();
+    static class Value _convert_field_value(const class Env& env, const parser::Event::Value &value);
+    static Object _convert_event(const class Env& env, const parser::Event &event);
+    static void _convert_and_callback(const class Env& env, Function real_callback, Client *client);
 
     std::string _source{};
 
