@@ -168,6 +168,16 @@ describe("5. Stop HawkTracerClient", () => {
         hawkTracerClient.stop();
     });
 
+    describe("does not crash when stopped in event handler", () => {
+        test("(When this test fails, it will be shown as PASSED but the process will crash at the end.)", (done) => {
+            hawkTracerClient.onEvents(() => {
+                hawkTracerClient.stop();
+                done();
+            });
+            hawkTracerClient.start();
+        });
+    });
+
     test.skip("undefined behavior when not stopped", () => {
         hawkTracerClient.onEvents(() => {});
         hawkTracerClient.start();

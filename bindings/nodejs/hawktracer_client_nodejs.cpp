@@ -45,6 +45,7 @@ Value Client::start(const CallbackInfo &info)
 void Client::stop(const CallbackInfo &)
 {
     _state.stop();
+    Reset();
 }
 
 void Client::set_on_events(const CallbackInfo &info)
@@ -134,8 +135,10 @@ void Client::convert_and_callback(const class Env& env, Function real_callback, 
                   });
     real_callback.Call({array});
 
-    // Now calling_object can be garbage-collected
-    calling_object->Unref();
+    // Now calling_object can be garbage-collected, however it could have been already stopped during callback.
+    if (!calling_object->IsEmpty()) {
+        calling_object->Unref();
+    }
 }
 
 } // namespace Nodejs
