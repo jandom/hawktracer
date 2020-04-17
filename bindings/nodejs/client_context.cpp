@@ -17,9 +17,8 @@ std::unique_ptr<ClientContext> ClientContext::create(const std::string &source, 
         return nullptr;
     }
 
-    std::unique_ptr<parser::KlassRegister> klass_register{new parser::KlassRegister()};
-    std::unique_ptr<parser::ProtocolReader>
-        reader{new parser::ProtocolReader(klass_register.get(), std::move(stream), true)};
+    auto klass_register = parser::make_unique<parser::KlassRegister>();
+    auto reader = parser::make_unique<parser::ProtocolReader>(klass_register.get(), std::move(stream), true);
     std::unique_ptr<ClientContext>
         context{new ClientContext(std::move(reader), std::move(klass_register), std::move(event_callback))};
     return context;
