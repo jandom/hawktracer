@@ -1,5 +1,10 @@
-const HawkTracerClient = require('@hawktracer/client')
+const {HawkTracerClient} = require('@hawktracer/client')
+
 const source = require('path').join(__dirname, 'test.htdump');
-hawkTracerClient = new HawkTracerClient(source);
+const hawkTracerClient = new HawkTracerClient(source);
+
+hawkTracerClient.onEvents((events) => console.log(events));
+
 hawkTracerClient.start();
-hawkTracerClient.end();
+
+setTimeout(() => hawkTracerClient.stop(), 1000);
