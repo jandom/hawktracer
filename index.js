@@ -1,2 +1,1 @@
-const {HawkTracerClient} = require('bindings')('hawk_tracer_client');
-export default HawkTracerClient;
+exports.HawkTracerClient = require('bindings')('hawk_tracer_client');
