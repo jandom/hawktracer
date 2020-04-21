@@ -125,17 +125,19 @@ void Client::_convert_and_callback(const class Env& env, Function real_callback,
 {
     std::vector<parser::Event> events = calling_object->_state.take_events();
 
-    Array array = Array::New(env);
-    int i = 0;
-    std::for_each(events.cbegin(),
-                  events.cend(),
-                  [env, &array, &i](const parser::Event& e)
-                  {
-                      array[i++] = _convert_event(env, e);
-                  });
-    real_callback.Call({array});
+    if (!events.empty()) {
+        Array array = Array::New(env);
+        int i = 0;
+        std::for_each(events.cbegin(),
+                      events.cend(),
+                      [env, &array, &i](const parser::Event& e)
+                      {
+                          array[i++] = _convert_event(env, e);
+                      });
+        real_callback.Call({array});
+    }
 
-    // Now calling_object can be garbage-collected, however it could have been already stopped during callback.
+    // Now calling_object can be garbage-collected, however stop() could have been already called from inside real_callback.
     if (!calling_object->IsEmpty()) {
         calling_object->Unref();
     }

@@ -136,6 +136,16 @@ describe("4. Receive events through callback", () => {
         });
         hawkTracerClient.start();
     });
+
+    test("does not emit empty events", (done) => {
+        let timer;
+        hawkTracerClient.onEvents((events: object[]) => {
+            expect(events.length).toBeGreaterThan(0);
+            clearTimeout(timer);
+            timer = setTimeout(done, 500); // Wait for a while in case more events come in.
+        });
+        hawkTracerClient.start();
+    });
 });
 
 describe("5. Stop HawkTracerClient", () => {
