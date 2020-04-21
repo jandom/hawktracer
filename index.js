@@ -1,1 +1,2 @@
-exports.HawkTracerClient = require('bindings')('hawk_tracer_client');
+const addon = require('bindings')('hawk_tracer_client');
+export default addon.HawkTracerClient;
