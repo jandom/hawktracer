@@ -28,6 +28,7 @@ Client::Client(const CallbackInfo& info)
     : ObjectWrap<Client>(info)
 {
     _source = info[0].As<String>();
+    _maps = info.Length() >= 2? info[1].As<String>(): std::string {};
 }
 
 Value Client::start(const CallbackInfo& info)
@@ -35,6 +36,7 @@ Value Client::start(const CallbackInfo& info)
     _state.start(
         ClientContext::create(
             _source,
+            _maps,
             [this]()
             {
                 _notify_new_event();
@@ -105,32 +107,33 @@ Value Client::_convert_field_value(const class Env& env, const parser::Event::Va
             return String::New(env, value.value.f_STRING);
         case parser::FieldTypeId::POINTER:
             return String::New(env, "(pointer)");
-        case parser::FieldTypeId::STRUCT:
-            return _convert_event(env, *value.value.f_EVENT);
         default:
             assert(0);
     }
 }
 
-Object Client::_convert_event(const class Env& env, const parser::Event& event)
+Object Client::_convert_event(const class Env& env, const LabeledEvent& event)
 {
     auto o = Object::New(env);
     for (const auto& it: event.get_values()) {
         o.Set(it.first, _convert_field_value(env, it.second));
+    }
+    if (!event.get_label_string().empty()) {
+        o.Set("label", String::New(env, event.get_label_string()));
     }
     return o;
 }
 
 void Client::_convert_and_callback(const class Env& env, Function real_callback, Client* calling_object)
 {
-    std::vector<parser::Event> events = calling_object->_state.take_events();
+    std::vector<LabeledEvent> events = calling_object->_state.take_events();
 
     if (!events.empty()) {
         Array array = Array::New(env);
         int i = 0;
         std::for_each(events.cbegin(),
                       events.cend(),
-                      [env, &array, &i](const parser::Event& e)
+                      [env, &array, &i](const LabeledEvent& e)
                       {
                           array[i++] = _convert_event(env, e);
                       });
