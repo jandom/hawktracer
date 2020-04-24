@@ -1,15 +1,12 @@
 #ifndef HAWKTRACER_CLIENT_CONVERTER_HPP
 #define HAWKTRACER_CLIENT_CONVERTER_HPP
 
+#include <hawktracer/client_utils/tracepoint_map.hpp>
 #include <hawktracer/parser/event.hpp>
-#include "tracepoint_map.hpp"
-
-#include <fstream>
-#include <stack>
 
 namespace HawkTracer
 {
-namespace client
+namespace ClientUtils
 {
 
 class Converter
@@ -34,7 +31,7 @@ private:
     HT_EventKlassId _mapping_klass_id = 0;
 };
 
-} // namespace client
+} // namespace ClientUtils
 } // namespace HawkTracer
 
 #endif // HAWKTRACER_CLIENT_CONVERTER_HPP

@@ -1,11 +1,11 @@
-#include "tracepoint_map.hpp"
+#include "hawktracer/client_utils/tracepoint_map.hpp"
 
 #include <fstream>
 #include <iostream>
 
 namespace HawkTracer
 {
-namespace client
+namespace ClientUtils
 {
 
 bool TracepointMap::load_map(const std::string& map_file)
@@ -82,5 +82,5 @@ std::string TracepointMap::category_to_string(Category category)
     }
 }
 
-} // client
+} // ClientUtils
 } // HawkTracer
