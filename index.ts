@@ -2,6 +2,7 @@ const NativeClient = require('bindings')('hawk_tracer_client').HawkTracerClient;
 
 export interface HawkTracerClientOptions {
     source: string;
+    map_files: string;
 }
 
 export interface Event {
@@ -44,7 +45,7 @@ export class HawkTracerClient {
     private _client: any;
 
     constructor(options: HawkTracerClientOptions) {
-        this._client = new NativeClient(options.source);
+        this._client = new NativeClient(options.source, options.map_files);
     }
 
     public start(): boolean {
