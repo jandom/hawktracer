@@ -28,7 +28,7 @@ Client::Client(const CallbackInfo& info)
     : ObjectWrap<Client>(info)
 {
     _source = info[0].As<String>();
-    _maps = info.Length() >= 2? info[1].As<String>(): std::string {};
+    _maps = info.Length() >= 2 && !info[1].IsUndefined() ? info[1].As<String>() : std::string{};
 }
 
 Value Client::start(const CallbackInfo& info)
