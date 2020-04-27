@@ -2,12 +2,15 @@ const htcAddon = require('bindings')('hawk_tracer_client');   // loads build/Rel
 const HawkTracerNativeClient = htcAddon.HawkTracerClient;
 
 describe("1. Initiating native HawkTracerClient", () => {
-    let hawkTracerClient;
-    // noinspection JSValidateTypes
-    beforeEach(() => hawkTracerClient = new HawkTracerNativeClient("some-file"));
-    afterEach(() => hawkTracerClient.stop());
+    test("succeeds when constructor is given `source` and `map_files` in string type", () => {
+        // noinspection JSValidateTypes
+        const hawkTracerClient = new HawkTracerNativeClient("some-file", "some-map-file1,some-map-file2");
+        expect(hawkTracerClient).not.toBeNull();
+    });
 
     test("succeeds when constructor is given `source` parameter in string type", () => {
+        // noinspection JSValidateTypes
+        const hawkTracerClient = new HawkTracerNativeClient("some-file");
         expect(hawkTracerClient).not.toBeNull();
     });
 
