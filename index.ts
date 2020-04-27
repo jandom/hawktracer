@@ -2,7 +2,7 @@ const NativeClient = require('bindings')('hawk_tracer_client').HawkTracerClient;
 
 export interface HawkTracerClientOptions {
     source: string;
-    map_files: string;
+    map_files?: string;
 }
 
 export interface Event {

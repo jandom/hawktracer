@@ -8,7 +8,8 @@
   "author": "Hojin Ghim <hojin@amazon.com>",
   "license": "MIT",
   "scripts": {
-    "prepublish": "tsc",
+    "test": "jest",
+    "prepare": "tsc",
     "install": "cmake-js compile --target nodejs_bindings_client --CDENABLE_CLIENT=YES --CDENABLE_NODEJS_BINDINGS=YES"
   },
   "dependencies": {
