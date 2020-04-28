@@ -93,7 +93,7 @@ describe("3. Start native HawkTracerClient", () => {
     test("fails with non-existing source file", () => {
         // noinspection JSValidateTypes
         hawkTracerClient = new HawkTracerNativeClient('non-existing file !@£$%^&*()');
-        expect(hawkTracerClient.start()).toBe(false);
+        expect(() => hawkTracerClient.start()).toThrow();
     });
 
     test.skip("undefined behavior when started twice", () => {

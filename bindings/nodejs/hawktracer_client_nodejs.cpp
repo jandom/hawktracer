@@ -41,6 +41,9 @@ Value Client::start(const CallbackInfo& info)
             {
                 _notify_new_event();
             }));
+    if (!_state.is_started()) {
+        throw Error::New(info.Env(), "Failed to start");
+    }
     return Boolean::New(info.Env(), _state.is_started());
 }
 
