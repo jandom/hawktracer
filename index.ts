@@ -48,8 +48,13 @@ export class HawkTracerClient {
     private _client: any;
     private _klass_names: (string | undefined)[] = [];
 
-    constructor(options: HawkTracerClientOptions) {
-        this._client = new NativeClient(options.source, options.map_files);
+    constructor(option: HawkTracerClientOptions | string) {
+        if (typeof option === "string") {
+            this._client = new NativeClient(option);
+        }
+        else {
+            this._client = new NativeClient(option.source, option.map_files);
+        }
     }
 
     public start(): boolean {
