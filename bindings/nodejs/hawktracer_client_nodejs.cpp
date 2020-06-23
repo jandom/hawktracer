@@ -106,7 +106,7 @@ Value Client::_convert_field_value(const class Env& env, const parser::Event::Va
         case parser::FieldTypeId::POINTER:
             return String::New(env, "(pointer)");
         default:
-            assert(0);
+            throw;
     }
 }
 
