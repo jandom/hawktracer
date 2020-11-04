@@ -17,7 +17,7 @@ namespace ClientUtils
 class TCPClientStream : public parser::Stream
 {
 public:
-    TCPClientStream(const std::string& ip_address, uint16_t port, bool wait_for_server = true);
+    TCPClientStream(const std::string& ip_address, uint16_t port, bool wait_for_server = false);
     ~TCPClientStream();
 
     bool start() override;
