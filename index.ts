@@ -3,6 +3,7 @@ const NativeClient = require('bindings')('hawk_tracer_client').HawkTracerClient;
 export interface HawkTracerClientOptions {
     source: string;
     map_files?: string;
+    wait_for_server?: boolean;
 }
 
 // HT_Event
@@ -53,7 +54,7 @@ export class HawkTracerClient {
             this._client = new NativeClient(option);
         }
         else {
-            this._client = new NativeClient(option.source, option.map_files);
+            this._client = new NativeClient(option.source, option.map_files, option.wait_for_server);
         }
     }
 

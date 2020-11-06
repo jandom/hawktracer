@@ -11,9 +11,9 @@ namespace Nodejs
 {
 
 std::unique_ptr<ClientContext>
-ClientContext::create(const std::string& source, const std::string& map_files, EventCallback event_callback)
+ClientContext::create(const std::string& source, const std::string& map_files, const bool wait_for_server, EventCallback event_callback)
 {
-    std::unique_ptr<parser::Stream> stream = ClientUtils::make_stream_from_string(source);
+    std::unique_ptr<parser::Stream> stream = ClientUtils::make_stream_from_string(source, wait_for_server);
     if (!stream) {
         return nullptr;
     }
@@ -66,6 +66,11 @@ std::vector<LabeledEvent> ClientContext::take_events()
     std::vector<LabeledEvent> new_buffer;
     std::swap(new_buffer, _buffer);
     return new_buffer;
+}
+
+bool ClientContext::get_reader_connected() 
+{
+    return _reader && _reader->start();
 }
 
 } // namespace Nodejs

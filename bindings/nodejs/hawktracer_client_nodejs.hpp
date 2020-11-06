@@ -31,6 +31,7 @@ private:
 
     std::string _source;
     std::string _maps;
+    bool _wait_for_server;
 
     class State
     {
@@ -54,7 +55,8 @@ private:
     public:
         bool is_started() const
         {
-            return static_cast<bool>(_client_context);
+            bool reader_connected = _client_context->get_reader_connected();
+            return static_cast<bool>(_client_context) && reader_connected;
         }
         // ?         X ?            => started   X ?
         void start(std::unique_ptr<ClientContext> cc)

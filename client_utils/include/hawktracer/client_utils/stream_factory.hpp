@@ -10,7 +10,7 @@ namespace HawkTracer
 namespace ClientUtils
 {
 
-std::unique_ptr<parser::Stream> make_stream_from_string(const std::string& source_description);
+std::unique_ptr<parser::Stream> make_stream_from_string(const std::string& source_description, const bool wait_for_server);
 
 } // namespace ClientUtils
 } // namespace HawkTracer

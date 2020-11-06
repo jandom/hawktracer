@@ -32,7 +32,7 @@ static bool file_exists(const char* name)
     return f.good();
 }
 
-std::unique_ptr<parser::Stream> make_stream_from_string(const std::string& source_description)
+std::unique_ptr<parser::Stream> make_stream_from_string(const std::string& source_description, const bool wait_for_server)
 {
     std::string ip;
     uint16_t port;
@@ -43,7 +43,7 @@ std::unique_ptr<parser::Stream> make_stream_from_string(const std::string& sourc
     }
     else if (scan_ip_address(source_description, ip, port, 8765))
     {
-        return parser::make_unique<TCPClientStream>(ip, port);
+        return parser::make_unique<TCPClientStream>(ip, port, wait_for_server);
     }
     else
     {
