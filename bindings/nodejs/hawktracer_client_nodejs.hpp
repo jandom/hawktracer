@@ -55,8 +55,14 @@ private:
     public:
         bool is_started() const
         {
-            bool reader_connected = _client_context->get_reader_connected();
-            return static_cast<bool>(_client_context) && reader_connected;
+            return static_cast<bool>(_client_context);
+        }
+        bool is_connected() const
+        {
+            if (!_client_context) {
+                return false;
+            }
+            return _client_context->get_reader_connected();
         }
         // ?         X ?            => started   X ?
         void start(std::unique_ptr<ClientContext> cc)

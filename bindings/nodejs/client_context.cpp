@@ -71,7 +71,7 @@ std::vector<LabeledEvent> ClientContext::take_events()
 bool ClientContext::get_reader_connected() 
 {
     if (!_reader) {
-        return false
+        return false;
     }
 
     return _reader->start();

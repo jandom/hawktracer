@@ -29,7 +29,7 @@ Client::Client(const CallbackInfo& info)
 {
     _source = info[0].As<String>();
     _maps = info.Length() >= 2 && !info[1].IsUndefined() ? info[1].As<String>() : std::string{};
-    _wait_for_server = info.Length() >= 3 && !info[2].IsUndefined() ? info[2].As<Boolean>() : false;
+    _wait_for_server = false;
 }
 
 Value Client::start(const CallbackInfo& info)
@@ -43,7 +43,13 @@ Value Client::start(const CallbackInfo& info)
             {
                 _notify_new_event();
             }));
-    return Boolean::New(info.Env(), _state.is_started());
+    if (_state.is_started()) {	
+        Ref();
+    }
+    else {
+        throw Error::New(info.Env(), "Failed to start, ClientContext couldn't be created");	
+    }           
+    return Boolean::New(info.Env(), _state.is_connected());
 }
 
 void Client::stop(const CallbackInfo&)

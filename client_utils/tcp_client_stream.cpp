@@ -25,7 +25,7 @@ static int close_socket(int sock_fd)
 #endif
 }
 
-TCPClientStream::TCPClientStream(const std::string& ip_address, uint16_t port, bool wait_for_server) :
+TCPClientStream::TCPClientStream(const std::string& ip_address, uint16_t port, bool wait_for_server = true) :
     _sock_fd(-1),
     _ip_address(ip_address),
     _port(port),
