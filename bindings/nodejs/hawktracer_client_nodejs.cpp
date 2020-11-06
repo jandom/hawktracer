@@ -42,13 +42,13 @@ Value Client::start(const CallbackInfo& info)
         {
             _notify_new_event();
     });
-    if (context) {	
-        Ref();
-    }
-    else {
+    if (!context) {	
         throw Error::New(info.Env(), "Failed to create context");	
     }
     _state.start(std::move(context));
+    if (_state.is_started()) {
+        Ref();
+    }
     return Boolean::New(info.Env(), _state.is_started());
 }
 
