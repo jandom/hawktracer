@@ -58,8 +58,21 @@ export class HawkTracerClient {
         }
     }
 
-    public start(): boolean {
-        return this._client.start();
+    public start(): Promise<boolean> {
+        const tryConnect = (resolve: any, reject: any) => {
+            if (this._client.start()) {
+                resolve(true);
+            }
+            else {
+                setTimeout(() => {
+                    tryConnect(resolve, reject);
+                }, 1000);
+            }
+        }
+
+        return new Promise(( resolve, reject ) => {
+            tryConnect(resolve, reject);
+        });
     }
 
     public stop(): void {
