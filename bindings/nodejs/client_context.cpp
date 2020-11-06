@@ -70,7 +70,11 @@ std::vector<LabeledEvent> ClientContext::take_events()
 
 bool ClientContext::get_reader_connected() 
 {
-    return _reader && _reader->start();
+    if (!_reader) {
+        return false
+    }
+
+    return _reader->start();
 }
 
 } // namespace Nodejs

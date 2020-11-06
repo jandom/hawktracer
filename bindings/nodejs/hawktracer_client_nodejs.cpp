@@ -29,7 +29,7 @@ Client::Client(const CallbackInfo& info)
 {
     _source = info[0].As<String>();
     _maps = info.Length() >= 2 && !info[1].IsUndefined() ? info[1].As<String>() : std::string{};
-    _wait_for_server = info.Length() >= 3 && !info[2].IsUndefined() ? info[2].As<Boolean>() : true;
+    _wait_for_server = info.Length() >= 3 && !info[2].IsUndefined() ? info[2].As<Boolean>() : false;
 }
 
 Value Client::start(const CallbackInfo& info)
