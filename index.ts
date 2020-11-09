@@ -58,13 +58,15 @@ export class HawkTracerClient {
         }
     }
 
-    public start(): Promise<boolean> {
+    public start(onSuccess?: () => void, onRetry?: () => void): Promise<boolean> {
         const tryConnect = (resolve: any, reject: any) => {
             if (this._client.start()) {
+                if (onSuccess) onSuccess();
                 resolve(true);
             }
             else {
                 setTimeout(() => {
+                    if (onRetry) onRetry();
                     tryConnect(resolve, reject);
                 }, 1000);
             }
