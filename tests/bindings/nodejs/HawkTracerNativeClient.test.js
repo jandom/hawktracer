@@ -85,7 +85,7 @@ describe("3. Start native HawkTracerClient", () => {
         const source = require('path').join(__dirname, 'test.htdump');
         // noinspection JSValidateTypes
         hawkTracerClient = new HawkTracerNativeClient(source);
-        expect(hawkTracerClient.start()).toBe(true);
+        expect(hawkTracerClient.start()).toEqual(true);
     });
 
     test.todo("succeeds with source in 'x.x.x.x:p' format where x.x.x.x is the IP address, p is port number");
