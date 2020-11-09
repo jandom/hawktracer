@@ -40,7 +40,7 @@ export interface CallstackEvent extends Event {
     label?: string | number;
 }
 
-export interface Status {
+export interface HawkTrackerStatus {
     status: string,
     message?: string,
 }
@@ -63,7 +63,7 @@ export class HawkTracerClient {
         }
     }
 
-    public start(callback?: (status: Status) => void): Promise<boolean> {
+    public start(callback?: (status: HawkTrackerStatus) => void): Promise<boolean> {
         const tryConnect = (resolve: any, reject: any) => {
             try {
                 if (this._client.start()) {
