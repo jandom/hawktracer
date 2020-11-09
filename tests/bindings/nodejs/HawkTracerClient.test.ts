@@ -27,8 +27,8 @@ test("constructs with string", () => {
 })
 
 test("constructs with HawkTracerClientOptions ", () => {
-    new HawkTracerClient({source: "abc", map_files: "def", wait_for_server: true});
-    expect(mockNativeClientClass).toHaveBeenCalledWith("abc", "def", true);
+    new HawkTracerClient({source: "abc", map_files: "def"});
+    expect(mockNativeClientClass).toHaveBeenCalledWith("abc", "def", undefined);
 })
 
 test("Hides system events", (done) => {
