@@ -74,7 +74,7 @@ bool ClientContext::get_reader_connected()
         return false;
     }
 
-    return _reader->start();
+    return !_reader->eos();
 }
 
 } // namespace Nodejs
