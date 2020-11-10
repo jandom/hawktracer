@@ -40,11 +40,6 @@ export interface CallstackEvent extends Event {
     label?: string | number;
 }
 
-export interface HawkTrackerStatus {
-    status: string,
-    message?: string,
-}
-
 export function isCallstackEvent(event: CallstackEvent): event is CallstackEvent {
     const e = event as CallstackEvent;
     return e.duration !== undefined && e.thread_id !== undefined;
