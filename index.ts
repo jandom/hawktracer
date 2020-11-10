@@ -78,7 +78,7 @@ export class HawkTracerClient {
                 }
             }
             catch (err) {
-                if (callback) callback({ status: "failed" });
+                if (callback) callback({ status: "failed", message: err.name + ': ' + err.message });
                 reject(err);
             }
         }

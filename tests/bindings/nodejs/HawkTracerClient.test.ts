@@ -88,7 +88,7 @@ test("start (failed)", () => {
     const client = new HawkTracerClient("abc");
     const callback = jest.fn();
     client.start(callback);
-    expect(callback).toHaveBeenCalledWith({ status: "failed" });
+    expect(callback).toHaveBeenCalledWith({ status: "failed", message: "Error: " });
 });
 
 const FIRST_EVENTS: BareEvent[] = [
