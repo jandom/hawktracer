@@ -73,22 +73,20 @@ test("Adds klass_name", (done) => {
 })
 
 
-test("start (succeeded)", () => {
+test("start (resolve)", () => {
+    expect.assertions(1);
     mockNativeClient.start = jest.fn().mockReturnValue(true);
     const client = new HawkTracerClient("abc");
-    const callback = jest.fn();
-    client.start(callback);
-    expect(callback).toHaveBeenCalledWith({ status: "success" });
+    return client.start().then(data => expect(data).toEqual(true));
 });
 
-test("start (failed)", () => {
+test("start (reject)", () => {
+    expect.assertions(1);
     mockNativeClient.start = jest.fn().mockImplementationOnce(() => {
         throw new Error();
     });
     const client = new HawkTracerClient("abc");
-    const callback = jest.fn();
-    client.start(callback);
-    expect(callback).toHaveBeenCalledWith({ status: "failed", message: "Error: " });
+    client.start().catch(e => expect(e).toBeInstanceOf(Error))
 });
 
 const FIRST_EVENTS: BareEvent[] = [

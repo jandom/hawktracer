@@ -63,22 +63,19 @@ export class HawkTracerClient {
         }
     }
 
-    public start(callback?: (status: HawkTrackerStatus) => void): Promise<boolean> {
+    public start(): Promise<boolean> {
         const tryConnect = (resolve: any, reject: any) => {
             try {
                 if (this._client.start()) {
-                    if (callback) callback({ status: "success" });
                     resolve(true);
                 }
                 else {
                     setTimeout(() => {
-                        if (callback) callback({ status: "retrying" });
                         tryConnect(resolve, reject);
                     }, 1000);
                 }
             }
             catch (err) {
-                if (callback) callback({ status: "failed", message: err.name + ': ' + err.message });
                 reject(err);
             }
         }
