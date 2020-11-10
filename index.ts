@@ -62,7 +62,7 @@ export class HawkTracerClient {
         const tryConnect = (resolve: any, reject: any) => {
             try {
                 if (this._client.start()) {
-                    resolve(true);
+                    resolve(this);
                 }
                 else {
                     setTimeout(() => {

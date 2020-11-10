@@ -29,7 +29,6 @@ Client::Client(const CallbackInfo& info)
 {
     _source = info[0].As<String>();
     _maps = info.Length() >= 2 && !info[1].IsUndefined() ? info[1].As<String>() : std::string{};
-    _wait_for_server = false;
 }
 
 Value Client::start(const CallbackInfo& info)
@@ -37,7 +36,6 @@ Value Client::start(const CallbackInfo& info)
     std::unique_ptr<ClientContext> context = ClientContext::create(
         _source,
         _maps,
-        _wait_for_server,
         [this]()
         {
             _notify_new_event();

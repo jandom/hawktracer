@@ -11,9 +11,9 @@ namespace Nodejs
 {
 
 std::unique_ptr<ClientContext>
-ClientContext::create(const std::string& source, const std::string& map_files, const bool wait_for_server, EventCallback event_callback)
+ClientContext::create(const std::string& source, const std::string& map_files, EventCallback event_callback)
 {
-    std::unique_ptr<parser::Stream> stream = ClientUtils::make_stream_from_string(source, wait_for_server);
+    std::unique_ptr<parser::Stream> stream = ClientUtils::make_stream_from_string(source, false);
     if (!stream) {
         return nullptr;
     }

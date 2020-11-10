@@ -29,7 +29,7 @@ class ClientContext
 public:
     using EventCallback = std::function<void()>;
     static std::unique_ptr<ClientContext>
-    create(const std::string& source, const std::string& map_files, const bool wait_for_server, EventCallback event_callback);
+    create(const std::string& source, const std::string& map_files, EventCallback event_callback);
 
     ~ClientContext();
     bool get_reader_connected();

@@ -31,7 +31,6 @@ private:
 
     std::string _source;
     std::string _maps;
-    bool _wait_for_server;
 
     class State
     {
