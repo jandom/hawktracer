@@ -50,33 +50,36 @@ export class HawkTracerClient {
     private _client: any;
     private _klass_names: (string | undefined)[] = [];
     private _timeout?: NodeJS.Timeout;
+    private _max_retries: number;
 
-    constructor(option: HawkTracerClientOptions | string) {
+    constructor(option: HawkTracerClientOptions | string, max_retries: number = 100) {
         if (typeof option === "string") {
             this._client = new NativeClient(option);
         }
         else {
             this._client = new NativeClient(option.source, option.map_files);
         }
+        this._max_retries = max_retries;
     }
 
     public start(): Promise<boolean> {
-        const tryConnect = (resolve: any, reject: any) => {
+        const tryConnect = (resolve: any, reject: any, retries: number) => {
             if (this._client.start()) {
-                resolve(this);
+                return resolve(this);
             }
-            else {
-                if (this._timeout) {
-                    clearTimeout(this._timeout);
-                }        
-                this._timeout = setTimeout(() => {
-                    tryConnect(resolve, reject);
-                }, ONE_SECOND);
+            if (retries <= 0) {
+                return reject(new Error('max_retries exceeded'));
             }
+            if (this._timeout) {
+                clearTimeout(this._timeout);
+            }        
+            this._timeout = setTimeout(() => {
+                tryConnect(resolve, reject, retries - 1);
+            }, ONE_SECOND);
         }
 
         return new Promise(( resolve, reject ) => {
-            tryConnect(resolve, reject);
+            tryConnect(resolve, reject, this._max_retries);
         });
     }
 

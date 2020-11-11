@@ -89,6 +89,13 @@ test("start (reject)", () => {
     client.start().catch(e => expect(e).toBeInstanceOf(Error))
 });
 
+test("start (retries)", () => {
+    expect.assertions(1);
+    mockNativeClient.start = jest.fn().mockReturnValue(false);
+    const client = new HawkTracerClient("abc", 0);
+    client.start().catch(e => expect(e).toBeInstanceOf(Error))
+});
+
 const FIRST_EVENTS: BareEvent[] = [
     { "endianness": 0, "id": 0, "timestamp": 0, "klass_id": 0 },
     { "info_klass_id": 0, "klass_id": 2, "event_klass_name": "HT_EndiannessInfoEvent", "field_count": 2, "id": 0, "timestamp": 198055101790315 },
