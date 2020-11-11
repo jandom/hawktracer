@@ -3,7 +3,6 @@ const NativeClient = require('bindings')('hawk_tracer_client').HawkTracerClient;
 export interface HawkTracerClientOptions {
     source: string;
     map_files?: string;
-    wait_for_server?: boolean;
 }
 
 // HT_Event
@@ -54,24 +53,19 @@ export class HawkTracerClient {
             this._client = new NativeClient(option);
         }
         else {
-            this._client = new NativeClient(option.source, option.map_files, option.wait_for_server);
+            this._client = new NativeClient(option.source, option.map_files);
         }
     }
 
     public start(): Promise<boolean> {
         const tryConnect = (resolve: any, reject: any) => {
-            try {
-                if (this._client.start()) {
-                    resolve(this);
-                }
-                else {
-                    setTimeout(() => {
-                        tryConnect(resolve, reject);
-                    }, 1000);
-                }
+            if (this._client.start()) {
+                resolve(this);
             }
-            catch (err) {
-                reject(err);
+            else {
+                setTimeout(() => {
+                    tryConnect(resolve, reject);
+                }, 1000);
             }
         }
 

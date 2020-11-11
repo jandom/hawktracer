@@ -28,7 +28,7 @@ test("constructs with string", () => {
 
 test("constructs with HawkTracerClientOptions ", () => {
     new HawkTracerClient({source: "abc", map_files: "def"});
-    expect(mockNativeClientClass).toHaveBeenCalledWith("abc", "def", undefined);
+    expect(mockNativeClientClass).toHaveBeenCalledWith("abc", "def");
 })
 
 test("Hides system events", (done) => {
@@ -77,7 +77,7 @@ test("start (resolve)", () => {
     expect.assertions(1);
     mockNativeClient.start = jest.fn().mockReturnValue(true);
     const client = new HawkTracerClient("abc");
-    return client.start().then(data => expect(data).toBeInstanceOf(HawkTracerClient));
+    return client.start().then(data => expect(data).toEqual(client));
 });
 
 test("start (reject)", () => {
