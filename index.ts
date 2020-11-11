@@ -1,5 +1,7 @@
 const NativeClient = require('bindings')('hawk_tracer_client').HawkTracerClient;   // loads build/Release/hawk_tracer_client.node
 
+const ONE_SECOND = 1e3;
+
 export interface HawkTracerClientOptions {
     source: string;
     map_files?: string;
@@ -47,6 +49,7 @@ export function isCallstackEvent(event: CallstackEvent): event is CallstackEvent
 export class HawkTracerClient {
     private _client: any;
     private _klass_names: (string | undefined)[] = [];
+    private _timeout?: NodeJS.Timeout;
 
     constructor(option: HawkTracerClientOptions | string) {
         if (typeof option === "string") {
@@ -63,9 +66,12 @@ export class HawkTracerClient {
                 resolve(this);
             }
             else {
-                setTimeout(() => {
+                if (this._timeout) {
+                    clearTimeout(this._timeout);
+                }        
+                this._timeout = setTimeout(() => {
                     tryConnect(resolve, reject);
-                }, 1000);
+                }, ONE_SECOND);
             }
         }
 
@@ -75,6 +81,9 @@ export class HawkTracerClient {
     }
 
     public stop(): void {
+        if (this._timeout) {
+            clearTimeout(this._timeout);
+        }
         this._client.stop();
     }
 
