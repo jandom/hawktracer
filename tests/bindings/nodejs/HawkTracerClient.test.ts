@@ -74,26 +74,35 @@ test("Adds klass_name", (done) => {
 
 
 test("start (resolve)", () => {
-    expect.assertions(1);
+    expect.assertions(2);
     mockNativeClient.start = jest.fn().mockReturnValue(true);
     const client = new HawkTracerClient("abc");
-    return client.start().then(data => expect(data).toEqual(client));
+    return client.start().then(data => {
+        expect(data).toEqual(client);
+        expect(mockNativeClient.start).toHaveBeenCalledTimes(1);
+    });
 });
 
 test("start (reject)", () => {
-    expect.assertions(1);
+    expect.assertions(2);
     mockNativeClient.start = jest.fn().mockImplementationOnce(() => {
         throw new Error();
     });
     const client = new HawkTracerClient("abc");
-    client.start().catch(e => expect(e).toBeInstanceOf(Error))
+    return client.start().catch(e => {
+        expect(e).toBeInstanceOf(Error);
+        expect(mockNativeClient.start).toHaveBeenCalledTimes(1);
+    })
 });
 
 test("start (retries)", () => {
-    expect.assertions(1);
+    expect.assertions(2);
     mockNativeClient.start = jest.fn().mockReturnValue(false);
     const client = new HawkTracerClient("abc", 0);
-    client.start().catch(e => expect(e).toBeInstanceOf(Error))
+    return client.start().catch(e => { 
+        expect(e).toBeInstanceOf(Error);
+        expect(mockNativeClient.start).toHaveBeenCalledTimes(1);
+    })
 });
 
 const FIRST_EVENTS: BareEvent[] = [
