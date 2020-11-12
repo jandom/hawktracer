@@ -5,6 +5,7 @@ const ONE_SECOND = 1e3;
 export interface HawkTracerClientOptions {
     source: string;
     map_files?: string;
+    max_retries?: number;
 }
 
 // HT_Event
@@ -46,20 +47,22 @@ export function isCallstackEvent(event: CallstackEvent): event is CallstackEvent
     return e.duration !== undefined && e.thread_id !== undefined;
 }
 
+const MAX_RETRIES = 100;
+
 export class HawkTracerClient {
     private _client: any;
     private _klass_names: (string | undefined)[] = [];
     private _timeout?: NodeJS.Timeout;
-    private _max_retries: number;
+    private _max_retries: number = MAX_RETRIES;
 
-    constructor(option: HawkTracerClientOptions | string, max_retries: number = 100) {
+    constructor(option: HawkTracerClientOptions | string) {
         if (typeof option === "string") {
             this._client = new NativeClient(option);
         }
         else {
             this._client = new NativeClient(option.source, option.map_files);
+            this._max_retries = option.max_retries || MAX_RETRIES;
         }
-        this._max_retries = max_retries;
     }
 
     public start(): Promise<boolean> {
@@ -67,7 +70,7 @@ export class HawkTracerClient {
             if (this._client.start()) {
                 return resolve(this);
             }
-            if (retries <= 0) {
+            if (retries <= 1) {
                 return reject(new Error('max_retries exceeded'));
             }
             if (this._timeout) {

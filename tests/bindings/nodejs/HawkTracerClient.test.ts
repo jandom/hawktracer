@@ -98,10 +98,10 @@ test("start (reject)", () => {
 test("start (retries)", () => {
     expect.assertions(2);
     mockNativeClient.start = jest.fn().mockReturnValue(false);
-    const client = new HawkTracerClient("abc", 0);
+    const client = new HawkTracerClient({source: "abc", max_retries: 3 });
     return client.start().catch(e => { 
         expect(e).toBeInstanceOf(Error);
-        expect(mockNativeClient.start).toHaveBeenCalledTimes(1);
+        expect(mockNativeClient.start).toHaveBeenCalledTimes(3);
     })
 });
 
